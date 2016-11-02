@@ -37,13 +37,14 @@ const inPath = path.join(__dirname,'unencrypted.pdf')
 const toPath = path.join(__dirname,'encrypted.pdf')
 const decryptTo = path.join(__dirname,'unencrypted2.pdf')
 
-pdfboxCliWrap.encrypt(inPath, toPath, {'password':'123abc'})
+//encrypt
+let promise = pdfboxCliWrap.encrypt(inPath, toPath, {'password':'123abc'})
 .then( ()=>console.log('encryption success!') )
-.catch(e=>console.log(e))
 
-pdfboxCliWrap.decrypt(toPath, , {'password':'123abc'})
+//decrypt
+promise.then( ()=>pdfboxCliWrap.decrypt(toPath, , {'password':'123abc'}) )
 .then( ()=>console.log('decryption success!') )
-.catch(e=>console.log(e))
+.catch( e=>console.log(e) )
 ```
 
 ### Encrypt Decrypt by Certificate
@@ -62,18 +63,18 @@ const cert = path.join(__dirname,'pdfbox-test.crt')
 const key = path.join(__dirname,'pdfbox-test.p12')
 
 //encrypt from readable pdf to unreadable pdf
-pdfboxCliWrap.encrypt(readablePdf, encryptTo, {'certFile':cert})
+let promise = pdfboxCliWrap.encrypt(readablePdf, encryptTo, {'certFile':cert})
 .then( ()=>console.log('encryption success!') )
-.catch(e=>console.log(e))
 
+//how to decrypt
 const decOptions = {
   keyStore:key,//Special file that is password protected. The contents are both the certificate and privatekey.
   password:'password'//unlocks the keyStore file
 }
 
-pdfboxCliWrap.decrypt(encryptTo, decryptTo, decOptions)
+promise.then( ()=>pdfboxCliWrap.decrypt(encryptTo, decryptTo, decOptions) )
 .then( ()=>console.log('decryption success!') )
-.catch(e=>console.log(e))
+.catch( e=>console.log(e) )
 ```
 
 > [Learn how to generate .crt and .p12 files here](#generate-certificates-and-keystore)
@@ -119,29 +120,32 @@ Here, I'll elaborate on the BouncyCastle install instructions:
     ```
     security.provider.{N}=org.bouncycastle.jce.provider.BouncyCastleProvider
     ```
-    > MORE ABOUT EDIT AND INSERT
-    >> GOTO middle of security file and look for something like
-    ```
-    security.provider.1=sun.security.provider.Sun
-    security.provider.2=sun.security.rsa.SunRsaSign
-    security.provider.3=sun.security.ec.SunEC
-    security.provider.4=com.sun.net.ssl.internal.ssl.Provider
-    security.provider.5=com.sun.crypto.provider.SunJCE
-    security.provider.6=sun.security.jgss.SunProvider
-    security.provider.7=com.sun.security.sasl.Provider
-    security.provider.8=org.jcp.xml.dsig.internal.dom.XMLDSigRI
-    security.provider.9=sun.security.smartcardio.SunPCSC
-    security.provider.10=apple.security.AppleProvider
-    security.provider.11=org.bouncycastle.jce.provider.BouncyCastleProvider
-    ```
-    >> replace {N} with your next security provider number.
-    >> 11 has been used for the example seen above
+        - MORE ABOUT EDIT AND INSERT
+        - GOTO middle of security file and look for something like
+        ```
+        security.provider.1=sun.security.provider.Sun
+        security.provider.2=sun.security.rsa.SunRsaSign
+        security.provider.3=sun.security.ec.SunEC
+        security.provider.4=com.sun.net.ssl.internal.ssl.Provider
+        security.provider.5=com.sun.crypto.provider.SunJCE
+        security.provider.6=sun.security.jgss.SunProvider
+        security.provider.7=com.sun.security.sasl.Provider
+        security.provider.8=org.jcp.xml.dsig.internal.dom.XMLDSigRI
+        security.provider.9=sun.security.smartcardio.SunPCSC
+        security.provider.10=apple.security.AppleProvider
+        security.provider.11=org.bouncycastle.jce.provider.BouncyCastleProvider
+        ```
+        - replace {N} with your next security provider number
+        - security.provider.11 has been used for the example seen above
+
 - Step #3  You may need to restart your computer to restart Java as BouncyCastle should now be installed
 
-> If when encrypting or decrypting you get an error of something like "no suitable crypto library found" then BouncyCastle is NOT installed correctly
+:warning: If when encrypting or decrypting you get an error of something like "no suitable crypto library found" then BouncyCastle is NOT installed correctly
 
 ### Generate Certificates and KeyStore
 Get ready to run terminal commands against Java's keytool. Fun fun
+
+> In a terminal command prompt window, run the following in a folder where certificate files can live
 
 Step #1 Create keyStore
 ```
@@ -157,6 +161,12 @@ Step #3 Marry the certificate and keyStore together as a .p12 file
 ```
 keytool -importkeystore -srckeystore pdfbox-test-keystore.jks -destkeystore pdfbox-test.p12 -srcstoretype JKS -deststoretype PKCS12 -deststorepass pdfbox-test-password -srcalias pdfbox-test-alias -destalias pdfbox-test-p12
 ```
+
+You should now have the following files in targeted folder:
+
+- pdfbox-test.crt
+- pdfbox-test-keystore.jks
+- pdfbox-test.p12
 
 ### MAY Need Java Cryptography
 Depending on your level of advanced encryption needs, you (may) need to install [Java Cryptography](http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html)
@@ -179,9 +189,9 @@ npm test
 ## Documentation
 
 ### encrypt(pdfPath, outputPathOrOptions, options)
-- @pdfPath - The PDF file to encrypt
-- @outputPathOrOptions - he file to save the decrypted document to. If left blank then it will be the same as the input file || options
-- @options - {}
+- **pdfPath** - The PDF file to encrypt
+- **outputPathOrOptions** - he file to save the decrypted document to. If left blank then it will be the same as the input file || options
+- **options** - {}
     - **O**:                          The owner password to the PDF, ignored if -certFile is specified.
     - **U**:                          The user password to the PDF, ignored if -certFile is specified.
     - **certFile**:                   Path to X.509 cert file.
@@ -196,9 +206,9 @@ npm test
     - **keyLength**:                  40, 128 or 256  The number of bits for the encryption key. For 128 and above bits Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files must be installed.
 
 ### decrypt(pdfPath, outputPathOrOptions, options)
-- @pdfPath - The PDF file to encrypt
-- @outputPathOrOptions - The file to save the decrypted document to. If left blank then it will be the same as the input file || options
-- @options - {}
+- **pdfPath** - The PDF file to encrypt
+- **outputPathOrOptions** - The file to save the decrypted document to. If left blank then it will be the same as the input file || options
+- **options** - {}
     - **password**: Password to the PDF or certificate in keystore.
     - **keyStore**: Path to keystore that holds certificate to decrypt the document. This is only required if the document is encrypted with a certificate, otherwise only the password is required.
     - **alias**:    The alias to the certificate in the keystore.

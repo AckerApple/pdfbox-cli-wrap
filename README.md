@@ -21,11 +21,13 @@ This packages revolves around PDFBox's Command Line Tools as [seen here](http://
 - [Resources](#resources)
 
 ## Purpose
-If you've looked into documentation for secure storage of PDFs, you know you need certificate based security for your PDFs. Many third-party websites discourage and make it seem as though you need to rely them for PDF document storage. This is because thier is money in securing documents. Do it yourself. Be a pioneer of and in your time!
+If you've looked into documentation for secure storage of PDFs, you know you need certificate based security for your PDFs. Many third-party websites discourage and make it seem as though you need to rely on them for PDF document storage. This is because thier is money in securing documents. Do it yourself!
 
 ## Examples
 
 ### Encrypt Decrypt by Password
+A great place to start before moving on to certificate based cryptography
+
 ```
 const pdfboxCliWrap = require('pdfbox-cli-wrap')
 
@@ -78,6 +80,8 @@ pdfboxCliWrap.decrypt(encryptTo, decryptTo, decOptions)
 
 ## Installation
 This package is a wrapper for making CLI commands to Java. A few things are going to be needed.
+
+> An updated version of NodeJs that supports ecma6 syntax is required. I believe version 4.0.0 or greater will do. I am in Node 7.0.0, as of this writing, my how time and version numbers can fly.
 
 ### Install Java
 [Download and Install Java](https://www.java.com/en/download/) and be sure to following command works without error in a command terminal:
@@ -204,3 +208,5 @@ npm test
 ## Resources
 
 - This whole package is based on [PDFBox CLI](http://pdfbox.apache.org/2.0/commandline.html) documentation
+- I had to report and have PDFBox fix a CLI issue to get this package to even work. A version of PDFBox with this fix has been included
+    - [Link to fixed issued](https://issues.apache.org/jira/browse/PDFBOX-3551)

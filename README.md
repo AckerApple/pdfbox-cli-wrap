@@ -120,7 +120,7 @@ Here, I'll elaborate on the BouncyCastle install instructions:
     security.provider.{N}=org.bouncycastle.jce.provider.BouncyCastleProvider
     ```
     > MORE ABOUT EDIT AND INSERT
-    > GOTO middle of security file and look for something like
+    >> GOTO middle of security file and look for something like
     ```
     security.provider.1=sun.security.provider.Sun
     security.provider.2=sun.security.rsa.SunRsaSign
@@ -132,11 +132,10 @@ Here, I'll elaborate on the BouncyCastle install instructions:
     security.provider.8=org.jcp.xml.dsig.internal.dom.XMLDSigRI
     security.provider.9=sun.security.smartcardio.SunPCSC
     security.provider.10=apple.security.AppleProvider
-    
     security.provider.11=org.bouncycastle.jce.provider.BouncyCastleProvider
     ```
-    replace {N} with your next security provider number.
-    11 has been used for the example seen above
+    >> replace {N} with your next security provider number.
+    >> 11 has been used for the example seen above
 - Step #3  You may need to restart your computer to restart Java as BouncyCastle should now be installed
 
 > If when encrypting or decrypting you get an error of something like "no suitable crypto library found" then BouncyCastle is NOT installed correctly

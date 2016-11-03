@@ -85,7 +85,7 @@ This package is a wrapper for making CLI commands to Java. A few things are goin
 > An updated version of NodeJs that supports ecma6 syntax is required. I believe version 4.0.0 or greater will do. I am in Node 7.0.0, as of this writing, my how time and version numbers can fly.
 
 ### Install Java
-[Download and Install Java](https://www.java.com/en/download/) and be sure to following command works without error in a command terminal:
+[Download and Install Java](https://www.java.com/en/download/) and be sure the following command works without error in a command terminal:
 ```
 java -version
 ```
@@ -120,6 +120,7 @@ Here, I'll elaborate on the BouncyCastle install instructions:
     ```
     security.provider.{N}=org.bouncycastle.jce.provider.BouncyCastleProvider
     ```
+        
         - MORE ABOUT EDIT AND INSERT
         - GOTO middle of security file and look for something like
         ```
@@ -135,6 +136,7 @@ Here, I'll elaborate on the BouncyCastle install instructions:
         security.provider.10=apple.security.AppleProvider
         security.provider.11=org.bouncycastle.jce.provider.BouncyCastleProvider
         ```
+        
         - replace {N} with your next security provider number
         - security.provider.11 has been used for the example seen above
 
@@ -190,10 +192,11 @@ npm test
 
 ### encrypt(pdfPath, outputPathOrOptions, options)
 - **pdfPath** - The PDF file to encrypt
-- **outputPathOrOptions** - he file to save the decrypted document to. If left blank then it will be the same as the input file || options
+- **outputPathOrOptions** - The file to save the decrypted document to. If left blank then it will be the same as the input file || options
 - **options** - {}
+    - **password**:                   The user password to the PDF, ignored if -certFile is specified. (alias of argument U)
     - **O**:                          The owner password to the PDF, ignored if -certFile is specified.
-    - **U**:                          The user password to the PDF, ignored if -certFile is specified.
+    - **U**:                          The user password to the PDF, ignored if -certFile is specified. (alias of argument password)
     - **certFile**:                   Path to X.509 cert file.
     - **canAssemble**:                true  Set the assemble permission.
     - **canExtractContent**:          true  Set the extraction permission.

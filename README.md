@@ -26,60 +26,6 @@ If you've looked into documentation for secure storage of PDFs, you know you nee
 
 ## Examples
 
-### Encrypt Decrypt by Password
-A great place to start before moving on to certificate based cryptography
-
-```
-const pdfboxCliWrap = require('pdfbox-cli-wrap')
-
-//create paths to pdf files
-const path = require('path')
-const inPath = path.join(__dirname,'unencrypted.pdf')
-const toPath = path.join(__dirname,'encrypted.pdf')
-const decryptTo = path.join(__dirname,'unencrypted2.pdf')
-
-//encrypt
-let promise = pdfboxCliWrap.encrypt(inPath, toPath, {'password':'123abc'})
-.then( ()=>console.log('encryption success!') )
-
-//decrypt
-promise.then( ()=>pdfboxCliWrap.decrypt(toPath, , {'password':'123abc'}) )
-.then( ()=>console.log('decryption success!') )
-.catch( e=>console.log(e) )
-```
-
-### Encrypt Decrypt by Certificate
-This is where the money is. Requires Java, BouncyCastle and certificates.
-```
-const pdfboxCliWrap = require('pdfbox-cli-wrap')
-
-//create paths to pdf files
-const path = require('path')
-const readablePdf = path.join(__dirname,'unencrypted.pdf')
-const encryptTo = path.join(__dirname,'encrypted.pdf')
-const decryptTo = path.join(__dirname,'unencrypted2.pdf')
-
-//create paths to secret files
-const cert = path.join(__dirname,'pdfbox-test.crt')
-const key = path.join(__dirname,'pdfbox-test.p12')
-
-//encrypt from readable pdf to unreadable pdf
-let promise = pdfboxCliWrap.encrypt(readablePdf, encryptTo, {'certFile':cert})
-.then( ()=>console.log('encryption success!') )
-
-//how to decrypt
-const decOptions = {
-  keyStore:key,//Special file that is password protected. The contents are both the certificate and privatekey.
-  password:'password'//unlocks the keyStore file
-}
-
-promise.then( ()=>pdfboxCliWrap.decrypt(encryptTo, decryptTo, decOptions) )
-.then( ()=>console.log('decryption success!') )
-.catch( e=>console.log(e) )
-```
-
-> [Learn how to generate .crt and .p12 files here](#generate-certificates-and-keystore)
-
 ### Read Acroform
 Read PDf form fields as an array of objects
 ```
@@ -111,7 +57,6 @@ The result of getFormFields will look like the following JSON
   "value": "Apple"
 }]
 ```
-
 
 ### Fill Acroform
 Fill PDf form fields from an array of objects
@@ -191,6 +136,60 @@ pdfboxCliWrap.embedFormFields(readablePdf, data, outPdfPath)
 .catch(e=>console.error(e))
 ```
 
+
+### Encrypt Decrypt by Password
+A great place to start before moving on to certificate based cryptography
+
+```
+const pdfboxCliWrap = require('pdfbox-cli-wrap')
+
+//create paths to pdf files
+const path = require('path')
+const inPath = path.join(__dirname,'unencrypted.pdf')
+const toPath = path.join(__dirname,'encrypted.pdf')
+const decryptTo = path.join(__dirname,'unencrypted2.pdf')
+
+//encrypt
+let promise = pdfboxCliWrap.encrypt(inPath, toPath, {'password':'123abc'})
+.then( ()=>console.log('encryption success!') )
+
+//decrypt
+promise.then( ()=>pdfboxCliWrap.decrypt(toPath, , {'password':'123abc'}) )
+.then( ()=>console.log('decryption success!') )
+.catch( e=>console.log(e) )
+```
+
+### Encrypt Decrypt by Certificate
+This is where the money is. Requires Java, BouncyCastle and certificates.
+```
+const pdfboxCliWrap = require('pdfbox-cli-wrap')
+
+//create paths to pdf files
+const path = require('path')
+const readablePdf = path.join(__dirname,'unencrypted.pdf')
+const encryptTo = path.join(__dirname,'encrypted.pdf')
+const decryptTo = path.join(__dirname,'unencrypted2.pdf')
+
+//create paths to secret files
+const cert = path.join(__dirname,'pdfbox-test.crt')
+const key = path.join(__dirname,'pdfbox-test.p12')
+
+//encrypt from readable pdf to unreadable pdf
+let promise = pdfboxCliWrap.encrypt(readablePdf, encryptTo, {'certFile':cert})
+.then( ()=>console.log('encryption success!') )
+
+//how to decrypt
+const decOptions = {
+  keyStore:key,//Special file that is password protected. The contents are both the certificate and privatekey.
+  password:'password'//unlocks the keyStore file
+}
+
+promise.then( ()=>pdfboxCliWrap.decrypt(encryptTo, decryptTo, decOptions) )
+.then( ()=>console.log('decryption success!') )
+.catch( e=>console.log(e) )
+```
+
+> [Learn how to generate .crt and .p12 files here](#generate-certificates-and-keystore)
 
 
 ## Installation

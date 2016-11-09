@@ -72,8 +72,8 @@ const data = [{
 }]
 
 pdfboxCliWrap.embedFormFields(readablePdf, data, outPdfPath)
-.then(fields=>{
-  console.log(fields)
+.then(()=>{
+  console.log("success")
 })
 .catch(e=>console.error(e))
 ```

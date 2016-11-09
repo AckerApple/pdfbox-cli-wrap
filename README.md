@@ -8,6 +8,7 @@ This packages revolves around PDFBox's Command Line Tools as [seen here](http://
 - [Examples](#examples)
     - [Read Acroform](#read-acroform)
     - [Fill Acroform](#fill-acroform)
+    - [Advanced Fill Acroform](#advanced-fill-acroform)
     - [Encrypt Decrypt by Password](#encrypt-decrypt-by-password)
     - [Encrypt Decrypt by Certificate](#encrypt-decrypt-by-certificate)
 - [Installation](#installation)

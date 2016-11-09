@@ -1,6 +1,8 @@
 //const Document = require('node-pdfbox');
 const path = require('path')
 const pdfBoxJarPath = path.join(__dirname,'pdfbox-app-2.0.3.jar')
+const ackPdfBoxPath = require.resolve("ack-pdfbox")
+const ackPdfBoxJarPath = path.join(ackPdfBoxPath, "../", "dist","ackpdfbox-1.0-SNAPSHOT-jar-with-dependencies.jar")
 const fs = require('fs')
 
 function opsOntoSpawnArgs(options, sArgs){
@@ -71,6 +73,63 @@ class PdfBoxCliWrap{
         res( output )
       })
     })
+  }
+
+  /** Returns array of objects
+  @pdfPath - The PDF file to read form fields from
+  */
+  static getFormFields(pdfPath){
+    const sArgs = ['-jar', ackPdfBoxJarPath, 'read', pdfPath]
+    return this.promiseJavaSpawn(sArgs).then(data=>{
+      data = data.trim()
+      if(data.substring(data.length-1)==','){
+        data = data.substring(0, data.length-1)//somehow a comma is being added?
+      }
+
+      return JSON.parse(data)
+    })
+  }
+  
+  /** Returns object of objects where key is fullyQualifiedName of PDF Acroform field
+  @pdfPath - The PDF file to read form fields from
+  */
+  static getFormFieldsAsObject(pdfPath){
+    return this.getFormFields(pdfPath).then(data=>{
+      const rtnOb = {}
+      for(let x=0; x < data.length; ++x){
+        rtnOb[ data[x].fullyQualifiedName ] = data[x]
+      }
+      return rtnOb
+    })
+  }
+
+  /** Takes array of objects and sets values of PDF Acroform fields
+  @pdfPath - The PDF file to read form fields from
+  @fieldArray - Array of PDF field definitions
+  @outPdfPath - Where to write PDF that has been filled
+  */
+  static embedFormFields(pdfPath, fieldArray, outPdfPath){
+    const jsonFilePath = path.join(process.cwd(),'tempAcroformJson_'+process.uptime()+'.json')
+    const sArgs = ['-jar', ackPdfBoxJarPath, 'fill', pdfPath, jsonFilePath, outPdfPath]
+    fieldArray = JSON.stringify(fieldArray, null, 2)
+    fs.writeFileSync(jsonFilePath, fieldArray)
+    return this.promiseJavaSpawn(sArgs).then(data=>{
+      fs.unlink(jsonFilePath)
+      return data
+    })
+  }
+
+  /** Takes objects of objects and sets values of PDF Acroform fields
+  @pdfPath - The PDF file to read form fields from
+  @fieldArray - Array of PDF field definitions
+  @outPdfPath - Where to write PDF that has been filled
+  */
+  static embedFormFieldsByObject(pdfPath, fields, outPdfPath){
+    const fieldArray = []
+    for(let x in fields){
+      fieldArray.push( fields[x] )
+    }
+    return this.embedFormFields(pdfPath, fieldArray, outPdfPath);
   }
 
   /**

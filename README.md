@@ -3,11 +3,11 @@ A wrapper for making PDFBox CLI commands
 
 This packages revolves around PDFBox's Command Line Tools as [seen here](http://pdfbox.apache.org/2.0/commandline.html)
 
-> This wrapper was created specifically for encrypting and decrypting pdf's with certificates. At this time, that is the only supported functionality
-
 ### Table of Contents
 - [Purpose](#purpose)
 - [Examples](#examples)
+    - [Read Acroform](#read-acroform)
+    - [Fill Acroform](#fill-acroform)
     - [Encrypt Decrypt by Password](#encrypt-decrypt-by-password)
     - [Encrypt Decrypt by Certificate](#encrypt-decrypt-by-certificate)
 - [Installation](#installation)
@@ -78,6 +78,119 @@ promise.then( ()=>pdfboxCliWrap.decrypt(encryptTo, decryptTo, decOptions) )
 ```
 
 > [Learn how to generate .crt and .p12 files here](#generate-certificates-and-keystore)
+
+### Read Acroform
+Read PDf form fields as an array of objects
+```
+const pdfboxCliWrap = require('pdfbox-cli-wrap')
+const readablePdf = path.join(__dirname,'readable.pdf')
+
+pdfboxCliWrap.getFormFields(readablePdf)
+.then(fields=>{
+  console.log(fields)
+})
+.catch(e=>console.error(e))
+```
+
+The result of getFormFields will look like the following JSON
+```
+[{
+  "fullyQualifiedName": "form1[0].#subform[6].FamilyName[0]",
+  "isReadOnly": false,
+  "partialName": "FamilyName[0]",
+  "type": "org.apache.pdfbox.pdmodel.interactive.form.PDTextField",
+  "isRequired": false,
+  "page": 6,
+  "cords": {
+    "x": "39.484",
+    "y": "597.929",
+    "width": "174.00198",
+    "height": "15.119995"
+  },
+  "value": "Apple"
+}]
+```
+
+
+### Fill Acroform
+Fill PDf form fields from an array of objects
+```
+const pdfboxCliWrap = require('pdfbox-cli-wrap')
+const readablePdf = path.join(__dirname,'readable.pdf')
+const outPdfPath = path.join(__dirname,'filled.pdf')
+
+//array of field values
+const data = [{
+  "fullyQualifiedName": "Your_FirstName",
+  "value": "Acker"
+}]
+
+pdfboxCliWrap.embedFormFields(readablePdf, data, outPdfPath)
+.then(fields=>{
+  console.log(fields)
+})
+.catch(e=>console.error(e))
+```
+
+### Advanced Fill Acroform
+
+The JSON file below will fill two fields:
+
+- First field is a plain text field
+- Second field will be replaced by a base64 image of a hand-signature
+    - **remove** was added to delete field from pdf
+    - **base64Overlay** was added to insert hand-signature image where field was
+        - **uri** specifies jpg or png image data
+        - **forceWidthHeight** forces image to fit with-in field coordinates
+
+```
+const pdfboxCliWrap = require('pdfbox-cli-wrap')
+const readablePdf = path.join(__dirname,'readable.pdf')
+const outPdfPath = path.join(__dirname,'filled.pdf')
+
+//array of field values
+const data = [{
+  "fullyQualifiedName": "form1[0].#subform[6].FamilyName[0]",
+  "isReadOnly": false,
+  "partialName": "FamilyName[0]",
+  "type": "org.apache.pdfbox.pdmodel.interactive.form.PDTextField",
+  "isRequired": false,
+  "page": 6,
+  "cords": {
+    "x": "39.484",
+    "y": "597.929",
+    "width": "174.00198",
+    "height": "15.119995"
+  },
+  "value": "Apple"
+},{
+  "fullyQualifiedName": "form1[0].#subform[6].EmployeeSignature[0]",
+  "isReadOnly": true,
+  "partialName": "EmployeeSignature[0]",
+  "type": "org.apache.pdfbox.pdmodel.interactive.form.PDTextField",
+  "isRequired": false,
+  "page": 6,
+  "cords": {
+    "x": "126.964",
+    "y": "227.523",
+    "width": "283.394",
+    "height": "15.12001"
+  },
+  "remove": true,
+  "base64Overlay": {
+    "uri": "data:image/png;base64,iVBOR......................=",
+    "forceWidthHeight": true
+  }
+}]
+
+pdfboxCliWrap.embedFormFields(readablePdf, data, outPdfPath)
+.then(fields=>{
+  console.log(fields)
+})
+.catch(e=>console.error(e))
+```
+
+
 
 ## Installation
 This package is a wrapper for making CLI commands to Java. A few things are going to be needed.
@@ -189,6 +302,31 @@ npm test
 ```
 
 ## Documentation
+
+
+### getFormFields(pdfPath)
+
+- Returns array of objects
+- **pdfPath** - The PDF file to read form fields from
+
+### getFormFieldsAsObject(pdfPath)
+
+- Returns object of objects where key is fullyQualifiedName of PDF Acroform field
+- **pdfPath** - The PDF file to read form fields from
+
+### embedFormFields(pdfPath, fieldArray, outPdfPath)
+Takes array of objects and sets values of PDF Acroform fields
+
+- **pdfPath** - The PDF file to read form fields from
+- **fieldArray** - Array of PDF field definitions
+- **outPdfPath** - Where to write PDF that has been filled
+
+### embedFormFieldsByObject(pdfPath, fields, outPdfPath)
+
+- Takes objects of objects and sets values of PDF Acroform fields
+- **pdfPath** - The PDF file to read form fields from
+- **fieldArray** - Array of PDF field definitions
+- **outPdfPath** - Where to write PDF that has been filled
 
 ### encrypt(pdfPath, outputPathOrOptions, options)
 - **pdfPath** - The PDF file to encrypt

@@ -1,7 +1,12 @@
 # pdfbox-cli-wrap
 A wrapper for making PDFBox CLI commands
 
-This packages revolves around PDFBox's Command Line Tools as [seen here](http://pdfbox.apache.org/2.0/commandline.html)
+This package allows for the following PDF functionality:
+
+- security via certificate
+- security via passward
+- read forms
+- fill forms
 
 ### Table of Contents
 - [Purpose](#purpose)
@@ -22,7 +27,9 @@ This packages revolves around PDFBox's Command Line Tools as [seen here](http://
 - [Resources](#resources)
 
 ## Purpose
-If you've looked into documentation for secure storage of PDFs, you know you need certificate based security for your PDFs. Many third-party websites discourage and make it seem as though you need to rely on them for PDF document storage. This is because thier is money in securing documents. Do it yourself!
+Connect to Java and the PDFBox library to allow Node code to perform perfected PDF management techinques.
+
+If you've looked into documentation for secure storage of PDFs, you know you need certificate based security for your PDFs. Next to no public Node libraries have certificate based PDF encryption software.
 
 ## Examples
 
@@ -360,3 +367,4 @@ Takes array of objects and sets values of PDF Acroform fields
 - This whole package is based on [PDFBox CLI](http://pdfbox.apache.org/2.0/commandline.html) documentation
 - I had to report and have PDFBox fix a CLI issue to get this package to even work. A version of PDFBox with this fix has been included
     - [Link to fixed issued](https://issues.apache.org/jira/browse/PDFBOX-3551)
+- PDF form read and fill is performed by the Java library [ack-pdfbox](https://github.com/AckerApple/ack-pdfbox)

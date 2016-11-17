@@ -8,8 +8,8 @@ const fs = require('fs')
 function opsOntoSpawnArgs(options, sArgs){
   for(let name in options){
     if(!options[name] || !options[name].toString)continue;//value not a string, skip it
-    sArgs.push('-'+name)
-    sArgs.push(options[name])
+    sArgs.push( '-'+name )
+    sArgs.push( options[name].toString() )
   }
 }
 

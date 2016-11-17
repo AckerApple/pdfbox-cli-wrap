@@ -64,7 +64,7 @@ class PdfBoxCliWrap{
           return rej( upgradeError(spawnError) )
         }
 
-        const output = dataArray.join()
+        const output = dataArray.join('')//bring all cli data together
 
         if(output.substring(0, 6)=='Error:' || output.substring(0, 9)=='Exception'){
           return rej( upgradeError(output) )

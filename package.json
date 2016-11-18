@@ -1,6 +1,6 @@
 {
   "name": "pdfbox-cli-wrap",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "A wrapper for making PDFBox CLI commands",
   "main": "index.js",
   "scripts": {
@@ -29,6 +29,6 @@
     "mocha": "^3.1.2"
   },
   "dependencies": {
-    "ack-pdfbox": "github:ackerapple/ack-pdfbox"
+    "ack-pdfbox": "^1.0.1"
   }
 }

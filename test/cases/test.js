@@ -94,7 +94,7 @@ describe('pdfboxCliWrap',function(){
             throw e
           }
         })
-        .then( ()=>fs.unlink(enc) )
+        .then( ()=>fs.unlink(enc,e=>e) )
         .then(done).catch(done)
       })
 
@@ -110,7 +110,7 @@ describe('pdfboxCliWrap',function(){
 
           throw err
         })
-        .then( ()=>fs.unlink(enc) )
+        .then( ()=>fs.unlink(enc,e=>e) )
         .then(done).catch(done)
       })
 
@@ -122,7 +122,7 @@ describe('pdfboxCliWrap',function(){
             throw e
           }
         })
-        .then( ()=>fs.unlink(enc) )
+        .then( ()=>fs.unlink(enc,e=>e) )
         .then(done).catch(done)
       })
 
@@ -138,8 +138,8 @@ describe('pdfboxCliWrap',function(){
 
           throw err
         })
-        .then( ()=>fs.unlink(enc) )
-        .then( ()=>fs.unlink(dec2) )
+        .then( ()=>fs.unlink(enc,e=>e) )
+        .then( ()=>fs.unlink(dec2,e=>e) )
         .then(done).catch(done)
       })
     })

@@ -66,7 +66,11 @@ class PdfBoxCliWrap{
 
         const output = dataArray.join('')//bring all cli data together
 
-        if(output.substring(0, 6)=='Error:' || output.substring(0, 9)=='Exception'){
+        if(
+            output.substring(0, 6)=='Error:'
+        ||  output.substring(0, 9)=='Exception'
+        ||  output.substring(0, 6)=='Usage:'
+        ){
           return rej( upgradeError(output) )
         }
 
@@ -113,9 +117,15 @@ class PdfBoxCliWrap{
     const sArgs = ['-jar', ackPdfBoxJarPath, 'fill', pdfPath, jsonFilePath, outPdfPath]
     fieldArray = JSON.stringify(fieldArray, null, 2)
     fs.writeFileSync(jsonFilePath, fieldArray)
-    return this.promiseJavaSpawn(sArgs).then(data=>{
-      fs.unlink(jsonFilePath)
+    
+    return this.promiseJavaSpawn(sArgs)
+    .then(data=>{
+      fs.unlink(jsonFilePath,function(){})
       return data
+    })
+    .catch(e=>{
+      fs.unlink(jsonFilePath,function(){})
+      throw e
     })
   }
 

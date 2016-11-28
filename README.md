@@ -287,8 +287,12 @@ keytool -importkeystore -srckeystore pdfbox-test-keystore.jks -destkeystore pdfb
 You should now have the following files in targeted folder:
 
 - pdfbox-test.crt
+    - used to encrypt
 - pdfbox-test-keystore.jks
+    - used to create p12 file below
 - pdfbox-test.p12
+    - used to decrypt
+
 
 ### MAY Need Java Cryptography
 Depending on your level of advanced encryption needs, you (may) need to install [Java Cryptography](http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html)
@@ -358,7 +362,7 @@ Takes array of objects and sets values of PDF Acroform fields
 - **outputPathOrOptions** - The file to save the decrypted document to. If left blank then it will be the same as the input file || options
 - **options** - {}
     - **password**: Password to the PDF or certificate in keystore.
-    - **keyStore**: Path to keystore that holds certificate to decrypt the document. This is only required if the document is encrypted with a certificate, otherwise only the password is required.
+    - **keyStore**: Path to keystore that holds certificate to decrypt the document (typically a .p12 file). This is only required if the document is encrypted with a certificate, otherwise only the password is required.
     - **alias**:    The alias to the certificate in the keystore.
 
 

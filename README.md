@@ -221,7 +221,7 @@ This is a 1 step process (maybe 2):
 BouncyCastle is the big daddy of cryptography libraries, for Java and PDFBox
 
 > This step is no longer necessary as BouncyCastle is now bundled with pdfbox-cli-wrap.
->> If you need the old BouncyCastle installation documentation, it can be [found here](README-BouncyCastle.md)
+>> If you need the old BouncyCastle installation documentation, it can be [found here](https://github.com/AckerApple/pdfbox-cli-wrap/blob/master/README-BouncyCastle.md)
 
 ### Generate Certificates and KeyStore
 Get ready to run terminal commands against Java's keytool. Fun fun

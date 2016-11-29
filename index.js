@@ -1,8 +1,10 @@
 //const Document = require('node-pdfbox');
 const path = require('path')
-const pdfBoxJarPath = path.join(__dirname,'pdfbox-app-2.0.3.jar')
+//const pdfBoxJarPath = path.join(__dirname,'pdfbox-app-2.0.3.jar')
 const ackPdfBoxPath = require.resolve("ack-pdfbox")
 const ackPdfBoxJarPath = path.join(ackPdfBoxPath, "../", "dist","ackpdfbox-1.0-SNAPSHOT-jar-with-dependencies.jar")
+//const ackPdfBoxJarPath = path.join(__dirname, "ackpdfbox-1.0-SNAPSHOT-jar-with-dependencies.jar")
+//const pdfBoxJarPath = path.join(__dirname,"ackpdfbox-1.0-SNAPSHOT-jar-with-dependencies.jar")
 const fs = require('fs')
 
 function opsOntoSpawnArgs(options, sArgs){
@@ -162,7 +164,7 @@ class PdfBoxCliWrap{
   */
   static encrypt(pdfPath, outputPathOrOptions, options){
     let args = figureOutAndOptions(outputPathOrOptions, options)
-    const sArgs = ['-jar', pdfBoxJarPath, 'Encrypt', pdfPath]
+    const sArgs = ['-jar', ackPdfBoxJarPath, 'Encrypt', pdfPath]
 
     //password is actually -U and must be changed out
     if(args.options.password){
@@ -189,7 +191,7 @@ class PdfBoxCliWrap{
   */
   static decrypt(pdfPath, outputPathOrOptions, options){
     let args = figureOutAndOptions(outputPathOrOptions, options)
-    const sArgs = ['-jar', pdfBoxJarPath, 'Decrypt', pdfPath]
+    const sArgs = ['-jar', ackPdfBoxJarPath, 'Decrypt', pdfPath]
 
     opsOntoSpawnArgs(args.options, sArgs)
 
@@ -200,6 +202,6 @@ class PdfBoxCliWrap{
     return this.promiseJavaSpawn(sArgs)
   }
 }
-PdfBoxCliWrap.jarPath = pdfBoxJarPath
+PdfBoxCliWrap.jarPath = ackPdfBoxJarPath
 
 module.exports = PdfBoxCliWrap

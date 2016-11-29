@@ -74,7 +74,7 @@ describe('pdfboxCliWrap',function(){
 
     describe('security',function(){    
       it('#load',done=>{
-        pdfboxCliWrap.decrypt(dec)
+        pdfboxCliWrap.decrypt(dec, dec, {'password':'NotEncrypted'})
         .catch(err=>{
           if(err && err.message){
             assert.equal(err.message.search(/Document is not encrypted/i)>=0, true)

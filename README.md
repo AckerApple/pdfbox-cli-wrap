@@ -19,7 +19,6 @@ This package allows for the following PDF functionality:
 - [Installation](#installation)
     - [Install Java](#install-java)
     - [Certificate Based Encrypt Decrypt Install Requirements](#certificate-based-encrypt-decrypt-install-requirements)
-        - [Add BouncyCastle into Java Security Extensions](#add-bouncycastle-into-java-security-extensions)
         - [Generate Certificates and KeyStore](#generate-certificates-and-keystore)
         - [MAY Need Java Cryptography](#may-need-java-cryptography)
     - [Test Installation](#test-installation)
@@ -167,7 +166,8 @@ promise.then( ()=>pdfboxCliWrap.decrypt(toPath, , {'password':'123abc'}) )
 ```
 
 ### Encrypt Decrypt by Certificate
-This is where the money is. Requires Java, BouncyCastle and certificates.
+This is where the money is
+
 ```
 const pdfboxCliWrap = require('pdfbox-cli-wrap')
 
@@ -213,56 +213,15 @@ java -version
 ### Certificate Based Encrypt Decrypt Install Requirements
 Are you going to be encrypting and possibly decrypting PDF documents?
 
-This is a 2 step process (maybe 3):
-- [Add BouncyCastle into Java Security Extensions](#add-bouncycastle-into-java-security-extensions)
+This is a 1 step process (maybe 2):
 - [Generate Certificates and KeyStore](#generate-certificates-and-keystore)
 - [MAY Need Java Cryptography](#may-need-java-cryptography)
 
 ### Add BouncyCastle into Java Security Extensions
 BouncyCastle is the big daddy of cryptography libraries, for Java and PDFBox
 
-[BouncyCastle](http://www.bouncycastle.org) Website
-
-An install guide can be found here: [install guide](http://www.bouncycastle.org/wiki/display/JA1/Provider+Installation)
-
-> I recommend installing via the topic: Installing the Provider Statically
-
-:warning: The BouncyCastle install guide just doesn't tell you enough
-
-Here, I'll elaborate on the BouncyCastle install instructions:
-
-- Step #1 Download the [BouncyCastle jar file](http://www.bouncycastle.org/latest_releases.html)
-    - I downloaded: [bcprov-ext-jdk15on-155.jar](http://www.bouncycastle.org/download/bcprov-jdk15on-155.jar)
-    - The jar file must go into the folder: $JAVA_HOME/jre/lib/ext
-
-- Step #2 You have to edit the file: $JAVA_HOME/jre/lib/security/java.security
-    - You must EDIT AND INSERT the following line:
-    ```
-    security.provider.{N}=org.bouncycastle.jce.provider.BouncyCastleProvider
-    ```
-        
-        - MORE ABOUT EDIT AND INSERT
-        - GOTO middle of security file and look for something like
-        ```
-        security.provider.1=sun.security.provider.Sun
-        security.provider.2=sun.security.rsa.SunRsaSign
-        security.provider.3=sun.security.ec.SunEC
-        security.provider.4=com.sun.net.ssl.internal.ssl.Provider
-        security.provider.5=com.sun.crypto.provider.SunJCE
-        security.provider.6=sun.security.jgss.SunProvider
-        security.provider.7=com.sun.security.sasl.Provider
-        security.provider.8=org.jcp.xml.dsig.internal.dom.XMLDSigRI
-        security.provider.9=sun.security.smartcardio.SunPCSC
-        security.provider.10=apple.security.AppleProvider
-        security.provider.11=org.bouncycastle.jce.provider.BouncyCastleProvider
-        ```
-        
-        - replace {N} with your next security provider number
-        - security.provider.11 has been used for the example seen above
-
-- Step #3  You may need to restart your computer to restart Java as BouncyCastle should now be installed
-
-:warning: If when encrypting or decrypting you get an error of something like "no suitable crypto library found" then BouncyCastle is NOT installed correctly
+> This step is no longer necessary as BouncyCastle is now bundled with pdfbox-cli-wrap.
+>> If you need the old BouncyCastle installation documentation, it can be [found here](README-BouncyCastle.md)
 
 ### Generate Certificates and KeyStore
 Get ready to run terminal commands against Java's keytool. Fun fun
@@ -358,7 +317,7 @@ Takes array of objects and sets values of PDF Acroform fields
     - **keyLength**:                  40, 128 or 256  The number of bits for the encryption key. For 128 and above bits Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files must be installed.
 
 ### decrypt(pdfPath, outputPathOrOptions, options)
-- **pdfPath** - The PDF file to encrypt
+- **pdfPath** - The PDF file to decrypt
 - **outputPathOrOptions** - The file to save the decrypted document to. If left blank then it will be the same as the input file || options
 - **options** - {}
     - **password**: Password to the PDF or certificate in keystore.

@@ -3,6 +3,7 @@ A wrapper for making PDFBox CLI commands
 
 This package allows for the following PDF functionality:
 
+- pages to images
 - security via certificate
 - security via passward
 - read forms

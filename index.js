@@ -201,7 +201,47 @@ class PdfBoxCliWrap{
 
     return this.promiseJavaSpawn(sArgs)
   }
+
+  /** produces png/jpg images in same folder as pdf
+    @pdfPath - The PDF file to make images from
+    @options{
+      password      : The password to the PDF document.
+      imageType=jpg : The image type to write to. Currently only jpg or png.
+      outputPrefix  : Name of PDF document The prefix to the image file.
+      startPage=1   : The first page to convert, one based.
+      endPage=1       : The last page to convert, one based.
+      nonSeq        : false Use the new non sequential parser.
+    }
+  */
+  static pdfToImage(pdfPath, options){
+    options = options || {}
+    options.endPage = 1
+    const sArgs = ['-jar', ackPdfBoxJarPath, 'pdftoimage', pdfPath]
+
+    opsOntoSpawnArgs(options, sArgs)
+
+    return this.promiseJavaSpawn(sArgs)
+  }
+
+  /** produces png/jpg images in same folder as pdf
+    @pdfPath - The PDF file to make images from
+    @options{
+      password      : The password to the PDF document.
+      imageType=jpg : The image type to write to. Currently only jpg or png.
+      outputPrefix  : Name of PDF document The prefix to the image file.
+      startPage=1   : The first page to convert, one based.
+      endPage=1       : The last page to convert, one based.
+      nonSeq        : false Use the new non sequential parser.
+    }
+  */
+  static pdfToImages(pdfPath, options){
+    const sArgs = ['-jar', ackPdfBoxJarPath, 'pdftoimage', pdfPath]
+
+    opsOntoSpawnArgs(options, sArgs)
+
+    return this.promiseJavaSpawn(sArgs)
+  }
 }
-PdfBoxCliWrap.jarPath = ackPdfBoxJarPath
+PdfBoxCliWrap.jarPath = ackPdfBoxJarPath//helpful ref to where Jar file lives
 
 module.exports = PdfBoxCliWrap

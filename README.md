@@ -11,6 +11,7 @@ This package allows for the following PDF functionality:
 ### Table of Contents
 - [Purpose](#purpose)
 - [Examples](#examples)
+    - [PDF to One Image](#pdf-to-one-image)
     - [Read Acroform](#read-acroform)
     - [Fill Acroform](#fill-acroform)
     - [Advanced Fill Acroform](#advanced-fill-acroform)
@@ -23,6 +24,15 @@ This package allows for the following PDF functionality:
         - [MAY Need Java Cryptography](#may-need-java-cryptography)
     - [Test Installation](#test-installation)
 - [Documentation](#documentation)
+    - [getFormFields](#getformfields)
+    - [getFormFieldsAsObject](#getformfieldsasobject)
+    - [embedFormFields](#embedformfields)
+    - [embedFormFieldsByObject](#embedformfieldsbyobject)
+    - [encrypt](#encrypt)
+    - [decrypt](#decrypt)
+    - [pdfToImages](#pdftoimages)
+    - [pdfToImage](#pdftoimage)
+
 - [Resources](#resources)
 
 ## Purpose
@@ -32,8 +42,26 @@ If you've looked into documentation for secure storage of PDFs, you know you nee
 
 ## Examples
 
+### PDF to One Image
+Create one image for the first page of a PDF document. Use pdfToImages to makes images of other pages
+
+```
+const pdfboxCliWrap = require('pdfbox-cli-wrap')
+const readablePdf = path.join(__dirname,'readable.pdf')
+
+pdfboxCliWrap.pdfToImage(readablePdf)
+.then(()=>{
+  console.log('jpg image exists in same folder as: '+readablePdf)
+})
+.catch(e=>console.error(e))
+```
+
+> For multiple images of pages use the method: .pdfToImages(pdf, options)
+
+
 ### Read Acroform
 Read PDf form fields as an array of objects
+
 ```
 const pdfboxCliWrap = require('pdfbox-cli-wrap')
 const readablePdf = path.join(__dirname,'readable.pdf')
@@ -273,32 +301,33 @@ npm test
 
 ## Documentation
 
-
-### getFormFields(pdfPath)
+### getFormFields
 
 - Returns array of objects
 - **pdfPath** - The PDF file to read form fields from
 
-### getFormFieldsAsObject(pdfPath)
+### getFormFieldsAsObject
+Read Acroform fields from a PDF as object-of-objects where each key is the fullyQualifiedName of input field
 
-- Returns object of objects where key is fullyQualifiedName of PDF Acroform field
 - **pdfPath** - The PDF file to read form fields from
 
-### embedFormFields(pdfPath, fieldArray, outPdfPath)
-Takes array of objects and sets values of PDF Acroform fields
+### embedFormFields
+Takes array-of-objects and sets values of PDF Acroform fields
+
+- **pdfPath** - The PDF file to read form fields from
+- **fieldArray** - Array of PDF field definitions
+- **outPdfPath** - Where to write PDF that has been filled
+
+### embedFormFieldsByObject
+Fill Acroform fields from a PDF with an array-of-objects to set the values of input fields
 
 - **pdfPath** - The PDF file to read form fields from
 - **fieldArray** - Array of PDF field definitions
 - **outPdfPath** - Where to write PDF that has been filled
 
-### embedFormFieldsByObject(pdfPath, fields, outPdfPath)
+### encrypt
+Will encrypt a PDF document
 
-- Takes objects of objects and sets values of PDF Acroform fields
-- **pdfPath** - The PDF file to read form fields from
-- **fieldArray** - Array of PDF field definitions
-- **outPdfPath** - Where to write PDF that has been filled
-
-### encrypt(pdfPath, outputPathOrOptions, options)
 - **pdfPath** - The PDF file to encrypt
 - **outputPathOrOptions** - The file to save the decrypted document to. If left blank then it will be the same as the input file || options
 - **options** - {}
@@ -316,13 +345,28 @@ Takes array of objects and sets values of PDF Acroform fields
     - **canPrintDegraded**:           true  Set the print degraded permission.
     - **keyLength**:                  40, 128 or 256  The number of bits for the encryption key. For 128 and above bits Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files must be installed.
 
-### decrypt(pdfPath, outputPathOrOptions, options)
+### decrypt
+Will decrypt a PDF document
+
 - **pdfPath** - The PDF file to decrypt
 - **outputPathOrOptions** - The file to save the decrypted document to. If left blank then it will be the same as the input file || options
 - **options** - {}
     - **password**: Password to the PDF or certificate in keystore.
     - **keyStore**: Path to keystore that holds certificate to decrypt the document (typically a .p12 file). This is only required if the document is encrypted with a certificate, otherwise only the password is required.
     - **alias**:    The alias to the certificate in the keystore.
+
+### pdfToImages
+Will create an image for any or every page in a PDF document.
+
+- **password** - The password to the PDF document.
+- **imageType**=jpg - The image type to write to. Currently only jpg or png.
+- **outputPrefix** - Name of PDF document  The prefix to the image file.
+- **startPage**=1 - The first page to convert, one based.
+- **endPage** - The last page to convert, one based.
+- **nonSeq** - false Use the new non sequential parser.
+
+### pdfToImage
+Will create one image for the first page of a PDF document. Use pdfToImages to makes images of other pages
 
 
 ## Resources

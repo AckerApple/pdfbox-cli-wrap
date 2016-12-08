@@ -1,6 +1,10 @@
 # pdfbox-cli-wrap - Change Log
 All notable changes to this project will be documented here.
 
+## [1.0.19] - 2016-12-8
+### Added
+- pdfToImages and pdfToImage
+
 ## [1.0.17] - 2016-11-28
 ### Updated
 - ack-pdfbox which now has BouncyCastle included

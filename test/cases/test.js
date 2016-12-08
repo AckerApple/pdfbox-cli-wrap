@@ -32,8 +32,21 @@ describe('pdfboxCliWrap',function(){
     })
   })
 
-  describe('functionality',function(){
-    describe("acroforms",function(){
+  describe('functionality',()=>{
+    it('#pdfToImage',done=>{
+      const imgPath = path.join(dec,'../','unencrypted1.jpg')
+      
+      try{fs.unlinkSync(imgPath)}catch(e){}//prevent false postive of preexisting image
+      
+      pdfboxCliWrap.pdfToImage(dec)
+      .then(x=>{
+        assert.equal(fs.existsSync(imgPath), true)
+      })
+      .then(()=>fs.unlink(imgPath,e=>e))
+      .then(done).catch(done)
+    })
+
+    describe("acroforms",()=>{
       it("getFormFields",done=>{
         pdfboxCliWrap.getFormFields(dec)
         .then(fields=>{
@@ -72,7 +85,7 @@ describe('pdfboxCliWrap',function(){
       })
     })
 
-    describe('security',function(){    
+    describe('security',()=>{    
       it('#load',done=>{
         pdfboxCliWrap.decrypt(dec, dec, {'password':'NotEncrypted'})
         .catch(err=>{

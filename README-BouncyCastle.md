@@ -40,3 +40,8 @@ Here, I'll elaborate on the BouncyCastle install instructions:
 - Step #3  You may need to restart your computer to restart Java as BouncyCastle should now be installed
 
 :warning: If when encrypting or decrypting you get an error of something like "no suitable crypto library found" then BouncyCastle is NOT installed correctly
+
+> Another possible error indicated Bouncy Castle is not properly registered as a provider:
+>> Could not find a suitable javax.crypto provider for algorithm 1.2.840.113549.3.2; possible reason: using an unsigned .jar file
+
+Here is more generic variation on how to [install JCE Providers](https://docs.oracle.com/cd/E19830-01/819-4712/ablsc/index.html)

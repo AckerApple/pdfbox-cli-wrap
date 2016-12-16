@@ -12,28 +12,27 @@ This package allows for the following PDF functionality:
 ### Table of Contents
 - [Purpose](#purpose)
 - [Examples](#examples)
-    - [PDF to One Image](#pdf-to-one-image)
-    - [Read Acroform](#read-acroform)
-    - [Fill Acroform](#fill-acroform)
-    - [Advanced Fill Acroform](#advanced-fill-acroform)
-    - [Encrypt Decrypt by Password](#encrypt-decrypt-by-password)
-    - [Encrypt Decrypt by Certificate](#encrypt-decrypt-by-certificate)
+  - [PDF to One Image](#pdf-to-one-image)
+  - [Read Acroform](#read-acroform)
+  - [Fill Acroform](#fill-acroform)
+  - [Advanced Fill Acroform](#advanced-fill-acroform)
+  - [Encrypt Decrypt by Password](#encrypt-decrypt-by-password)
+  - [Encrypt Decrypt by Certificate](#encrypt-decrypt-by-certificate)
 - [Installation](#installation)
-    - [Install Java](#install-java)
-    - [Certificate Based Encrypt Decrypt Install Requirements](#certificate-based-encrypt-decrypt-install-requirements)
-        - [Generate Certificates and KeyStore](#generate-certificates-and-keystore)
-        - [MAY Need Java Cryptography](#may-need-java-cryptography)
-    - [Test Installation](#test-installation)
+  - [Install Java](#install-java)
+  - [Certificate Based Encrypt Decrypt Install Requirements](#certificate-based-encrypt-decrypt-install-requirements)
+    - [Generate Certificates and KeyStore](#generate-certificates-and-keystore)
+    - [MAY Need Java Cryptography](#may-need-java-cryptography)
+  - [Test Installation](#test-installation)
 - [Documentation](#documentation)
-    - [getFormFields](#getformfields)
-    - [getFormFieldsAsObject](#getformfieldsasobject)
-    - [embedFormFields](#embedformfields)
-    - [embedFormFieldsByObject](#embedformfieldsbyobject)
-    - [encrypt](#encrypt)
-    - [decrypt](#decrypt)
-    - [pdfToImages](#pdftoimages)
-    - [pdfToImage](#pdftoimage)
-
+  - [getFormFields](#getformfields)
+  - [getFormFieldsAsObject](#getformfieldsasobject)
+  - [embedFormFields](#embedformfields)
+  - [embedFormFieldsByObject](#embedformfieldsbyobject)
+  - [encrypt](#encrypt)
+  - [decrypt](#decrypt)
+  - [pdfToImages](#pdftoimages)
+  - [pdfToImage](#pdftoimage)
 - [Resources](#resources)
 
 ## Purpose
@@ -246,13 +245,14 @@ This is a 1 step process (maybe 2):
 - [Generate Certificates and KeyStore](#generate-certificates-and-keystore)
 - [MAY Need Java Cryptography](#may-need-java-cryptography)
 
-### Add BouncyCastle into Java Security Extensions
+#### Add BouncyCastle into Java Security Extensions
 BouncyCastle is the big daddy of cryptography libraries, for Java and PDFBox
 
-> This step is no longer necessary as BouncyCastle is now bundled with pdfbox-cli-wrap.
->> If you need the old BouncyCastle installation documentation, it can be [found here](https://github.com/AckerApple/pdfbox-cli-wrap/blob/master/README-BouncyCastle.md)
+> This step is no longer necessary, IN MOST CASES, as BouncyCastle is now bundled with pdfbox-cli-wrap.
+> If you need the BouncyCastle installation documentation, it can be [found here](https://github.com/AckerApple/pdfbox-cli-wrap/blob/master/README-BouncyCastle.md)
+>> Bouncy Castle is not a registered provider, when errors like the following occur:  java.io.IOException: Could not find a suitable javax.crypto provider
 
-### Generate Certificates and KeyStore
+#### Generate Certificates and KeyStore
 Get ready to run terminal commands against Java's keytool. Fun fun
 
 > In a terminal command prompt window, run the following in a folder where certificate files can live
@@ -282,7 +282,7 @@ You should now have the following files in targeted folder:
     - used to decrypt
 
 
-### MAY Need Java Cryptography
+#### MAY Need Java Cryptography
 Depending on your level of advanced encryption needs, you (may) need to install [Java Cryptography](http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html)
 
 

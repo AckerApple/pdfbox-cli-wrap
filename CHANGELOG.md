@@ -1,6 +1,13 @@
 # pdfbox-cli-wrap - Change Log
 All notable changes to this project will be documented here.
 
+## [1.0.21] - 2016-12-15
+### Added
+- better error detection
+- encryptToBuffer
+- decryptByBuffer
+- decryptToBuffer
+
 ## [1.0.19] - 2016-12-8
 ### Added
 - pdfToImages and pdfToImage

@@ -1,3 +1,4 @@
+const deleteFiles = true//false
 const fs = require('fs')
 const pdfboxCliWrap = require('../../index')
 const assert = require('assert')
@@ -36,13 +37,13 @@ describe('pdfboxCliWrap',function(){
     it('#pdfToImage',done=>{
       const imgPath = path.join(dec,'../','unencrypted1.jpg')
       
-      try{fs.unlinkSync(imgPath)}catch(e){}//prevent false postive of preexisting image
+      if(deleteFiles)fs.unlink(imgPath,e=>e)
       
       pdfboxCliWrap.pdfToImage(dec)
       .then(x=>{
         assert.equal(fs.existsSync(imgPath), true)
       })
-      .then(()=>fs.unlink(imgPath,e=>e))
+      .then(()=>deleteFiles?fs.unlink(imgPath,e=>e):null)
       .then(done).catch(done)
     })
 
@@ -99,6 +100,24 @@ describe('pdfboxCliWrap',function(){
         .then(done).catch(done)
       })
 
+      it('#encryptToBuffer{password}',done=>{
+        const config = {'password':'123abc'}
+        pdfboxCliWrap.encryptToBuffer(dec, config)
+        .then(stream=>pdfboxCliWrap.decryptByBuffer(stream, config))
+        .then( stream=>pdfboxCliWrap.decryptByBuffer(stream) )//already decrypted, will cause error
+        .catch(err=>{
+          if(err && err.message){
+            assert.equal(err.message.search(/Document is not encrypted/i)>=0, true)
+            return;
+          }
+
+          throw err
+        })
+        .then(()=>{})
+        //.then( ()=>deleteFiles?fs.unlink(enc,e=>e):null )
+        .then(done).catch(done)
+      })
+
       it('#encrypt{password}',done=>{
         pdfboxCliWrap.encrypt(dec, enc, {'password':'123abc'})
         .then( ()=>pdfboxCliWrap.decrypt(enc) )
@@ -107,13 +126,14 @@ describe('pdfboxCliWrap',function(){
             throw e
           }
         })
-        .then( ()=>fs.unlink(enc,e=>e) )
+        .then( ()=>deleteFiles?fs.unlink(enc,e=>e):null )
         .then(done).catch(done)
       })
 
       it('#decrypt{password}',done=>{
-        pdfboxCliWrap.encrypt(dec, enc, {'password':'123abc'})
-        .then(()=>pdfboxCliWrap.decrypt(enc, {'password':'123abc'}))
+        const config = {'password':'123abc'}
+        pdfboxCliWrap.encrypt(dec, enc, config)
+        .then(()=>pdfboxCliWrap.decrypt(enc, config))
         .then( ()=>pdfboxCliWrap.decrypt(enc) )
         .catch(err=>{
           if(err && err.message){
@@ -123,7 +143,7 @@ describe('pdfboxCliWrap',function(){
 
           throw err
         })
-        .then( ()=>fs.unlink(enc,e=>e) )
+        .then( ()=>deleteFiles?fs.unlink(enc,e=>e):null )
         .then(done).catch(done)
       })
 
@@ -135,7 +155,7 @@ describe('pdfboxCliWrap',function(){
             throw e
           }
         })
-        .then( ()=>fs.unlink(enc,e=>e) )
+        .then( ()=>deleteFiles?fs.unlink(enc,e=>e):null )
         .then(done).catch(done)
       })
 
@@ -151,8 +171,8 @@ describe('pdfboxCliWrap',function(){
 
           throw err
         })
-        .then( ()=>fs.unlink(enc,e=>e) )
-        .then( ()=>fs.unlink(dec2,e=>e) )
+        .then( ()=>deleteFiles?fs.unlink(enc,e=>e):null )
+        .then( ()=>deleteFiles?fs.unlink(dec2,e=>e):null )
         .then(done).catch(done)
       })
     })

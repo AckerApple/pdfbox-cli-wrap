@@ -72,6 +72,7 @@ class PdfBoxCliWrap{
             output.substring(0, 6)=='Error:'
         ||  output.substring(0, 9)=='Exception'
         ||  output.substring(0, 6)=='Usage:'
+        ||  output.search('java.io')>=0
         ){
           return rej( upgradeError(output) )
         }
@@ -180,6 +181,22 @@ class PdfBoxCliWrap{
     return this.promiseJavaSpawn(sArgs)
   }
 
+  static encryptToBuffer(pdfPath, options){
+    let args = figureOutAndOptions(options)
+    const writePath = path.join(process.cwd(), 'tempBufferFile'+process.uptime()+'.pdf')
+
+    return this.encrypt(pdfPath, writePath, options)
+    .then(()=>{
+      return new Promise(function(res,rej){
+        fs.readFile(writePath,(err,buffer)=>{
+          fs.unlink(writePath,e=>e)
+          if(err)return rej(err)
+          res(buffer)
+        })
+      })
+    })
+  }
+
   /**
     @pdfPath - The PDF file to encrypt
     @outputPathOrOptions - The file to save the decrypted document to. If left blank then it will be the same as the input file || options
@@ -200,6 +217,41 @@ class PdfBoxCliWrap{
     }
 
     return this.promiseJavaSpawn(sArgs)
+  }
+
+  static decryptToBuffer(pdfPath, options){
+    let args = figureOutAndOptions(options)
+    const writePath = path.join(process.cwd(), 'tempBufferFile'+process.uptime()+'.pdf')
+
+    return this.decrypt(pdfPath, writePath, options)
+    .then(msg=>{
+      return new Promise(function(res,rej){
+        fs.readFile(writePath,(err,buffer)=>{
+          fs.unlink(writePath,e=>e)
+          if(err)return rej(err)
+          res(buffer)
+        })
+      })
+    })
+  }
+
+  static decryptByBuffer(buffer, options){
+    const writePath = path.join(process.cwd(), 'tempBufferFile'+process.uptime()+'.pdf')
+    return new Promise(function(res,rej){
+      fs.writeFile(writePath,buffer,(err,data)=>{
+        if(err)return rej(err)
+        res(writePath)
+      })
+    })
+    .then(writePath=>this.decryptToBuffer(writePath, options))
+    .then(buffer=>{
+      fs.unlink(writePath,e=>e)
+      return buffer
+    })
+    .catch(e=>{
+      fs.unlink(writePath,e=>e)
+      throw e
+    })
   }
 
   /** produces png/jpg images in same folder as pdf

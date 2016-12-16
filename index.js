@@ -235,6 +235,25 @@ class PdfBoxCliWrap{
     })
   }
 
+  static encryptByBuffer(buffer, options){
+    const writePath = path.join(process.cwd(), 'tempBufferFile'+process.uptime()+'.pdf')
+    return new Promise(function(res,rej){
+      fs.writeFile(writePath,buffer,(err,data)=>{
+        if(err)return rej(err)
+        res(writePath)
+      })
+    })
+    .then(writePath=>this.encryptToBuffer(writePath, options))
+    .then(buffer=>{
+      fs.unlink(writePath,e=>e)
+      return buffer
+    })
+    .catch(e=>{
+      fs.unlink(writePath,e=>e)
+      throw e
+    })
+  }
+
   static decryptByBuffer(buffer, options){
     const writePath = path.join(process.cwd(), 'tempBufferFile'+process.uptime()+'.pdf')
     return new Promise(function(res,rej){

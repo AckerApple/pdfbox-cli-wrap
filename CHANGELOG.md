@@ -5,6 +5,7 @@ All notable changes to this project will be documented here.
 ### Added
 - better error detection
 - encryptToBuffer
+- encryptByBuffer
 - decryptByBuffer
 - decryptToBuffer
 

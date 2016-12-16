@@ -103,8 +103,10 @@ describe('pdfboxCliWrap',function(){
       it('#encryptToBuffer{password}',done=>{
         const config = {'password':'123abc'}
         pdfboxCliWrap.encryptToBuffer(dec, config)
-        .then(stream=>pdfboxCliWrap.decryptByBuffer(stream, config))
-        .then( stream=>pdfboxCliWrap.decryptByBuffer(stream) )//already decrypted, will cause error
+        .then(buffer=>pdfboxCliWrap.decryptByBuffer(buffer, config))
+        .then(buffer=>pdfboxCliWrap.encryptByBuffer(buffer, config))
+        .then(buffer=>pdfboxCliWrap.decryptByBuffer(buffer, config))
+        .then( buffer=>pdfboxCliWrap.decryptByBuffer(buffer) )//already decrypted, will cause error
         .catch(err=>{
           if(err && err.message){
             assert.equal(err.message.search(/Document is not encrypted/i)>=0, true)
@@ -113,7 +115,6 @@ describe('pdfboxCliWrap',function(){
 
           throw err
         })
-        .then(()=>{})
         //.then( ()=>deleteFiles?fs.unlink(enc,e=>e):null )
         .then(done).catch(done)
       })

@@ -15,6 +15,7 @@ This package allows for the following PDF functionality:
   - [PDF to One Image](#pdf-to-one-image)
   - [Read Acroform](#read-acroform)
   - [Fill Acroform](#fill-acroform)
+  - [Embed Timestamp Signature](#embed-timestamp-signature)
   - [Advanced Fill Acroform](#advanced-fill-acroform)
   - [Encrypt Decrypt by Password](#encrypt-decrypt-by-password)
   - [Encrypt Decrypt by Certificate](#encrypt-decrypt-by-certificate)
@@ -29,6 +30,7 @@ This package allows for the following PDF functionality:
   - [getFormFieldsAsObject](#getformfieldsasobject)
   - [embedFormFields](#embedformfields)
   - [embedFormFieldsByObject](#embedformfieldsbyobject)
+  - [sign](#sign)
   - [encrypt](#encrypt)
   - [decrypt](#decrypt)
   - [pdfToImages](#pdftoimages)
@@ -168,6 +170,21 @@ pdfboxCliWrap.embedFormFields(readablePdf, data, outPdfPath)
   console.log("success")
 })
 .catch(e=>console.error(e))
+```
+
+
+### Embed Timestamp Signature
+```
+const pdfboxCliWrap = require('pdfbox-cli-wrap')
+
+//create paths to pdf files
+const path = require('path')
+const inPath = path.join(__dirname,'unencrypted.pdf')
+const key = path.join(__dirname,'pdfbox-test.p12')
+
+pdfboxCliWrap.signToBuffer(inPath)
+.then(buffer=>console.log('signed!'))
+.catch(e=>console.error('failed to sign'))
 ```
 
 
@@ -325,6 +342,29 @@ Fill Acroform fields from a PDF with an array-of-objects to set the values of in
 - **pdfPath** - The PDF file to read form fields from
 - **fieldArray** - Array of PDF field definitions
 - **outPdfPath** - Where to write PDF that has been filled
+
+### sign
+Will embed timestamp signature with optional TSA option
+
+- **pkcs12_keystore** - keystore the pkcs12 keystore containing the signing certificate (typically a .p12 file)
+- **password** - the password for recovering the key
+- **pdf_to_sign** - the PDF file to sign
+- **options**
+  - **tsa** - url - sign timestamp using the given TSA server
+  - **out** - path - pdf output path
+  - **e** - sign using external signature creation scenario
+
+### signToBuffer
+See [sign](#sign)
+```
+pdfboxCliWrap.signToBuffer(path,outPath,options).then(buffer).catch()
+```
+
+### signByBuffer
+See [sign](#sign)
+```
+pdfboxCliWrap.signByBuffer(buffer,options).then(buffer).catch()
+```
 
 ### encrypt
 Will encrypt a PDF document

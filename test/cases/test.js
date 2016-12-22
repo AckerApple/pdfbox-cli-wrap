@@ -47,6 +47,20 @@ describe('pdfboxCliWrap',function(){
       .then(done).catch(done)
     })
 
+    it('#sign',done=>{
+      const imgPath = path.join(dec,'../','unencrypted1.jpg')
+      
+      if(deleteFiles)fs.unlink(imgPath,e=>e)
+      
+      pdfboxCliWrap.sign(dec,dec2,{keyStore:key,password:'pdfbox-test-password'})
+      .then(x=>{
+        console.log(x)
+        assert.equal(fs.existsSync(dec2), true)
+      })
+      .then(()=>deleteFiles?fs.unlink(dec2,e=>e):null)
+      .then(done).catch(done)
+    })
+
     describe("acroforms",()=>{
       it("getFormFields",done=>{
         pdfboxCliWrap.getFormFields(dec)

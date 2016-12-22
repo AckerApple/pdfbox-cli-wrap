@@ -1,6 +1,12 @@
 # pdfbox-cli-wrap - Change Log
 All notable changes to this project will be documented here.
 
+## [1.0.22] - 2016-12-22
+### Added
+- sign
+- signToBuffer
+- signByBuffer
+
 ## [1.0.21] - 2016-12-15
 ### Added
 - better error detection

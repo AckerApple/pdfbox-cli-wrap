@@ -110,10 +110,79 @@ class PdfBoxCliWrap{
     })
   }
 
+  /**
+    @pdfPath - The PDF file to encrypt
+    @outputPathOrOptions - The file to save the document to. If left blank then it will be the same as the input file || options
+    @options{
+      password Password to the PDF or certificate in keystore.
+      keyStore Path to keystore that holds certificate to decrypt the document. This is only required if the document is encrypted with a certificate, otherwise only the password is required.
+      tsa
+    }
+
+  */
+  static sign(pdfPath, outputPathOrOptions, options){
+    let args = figureOutAndOptions(outputPathOrOptions, options)
+    const sArgs = ['-jar', ackPdfBoxJarPath, 'sign']
+
+    sArgs.push(args.options.keyStore)
+    sArgs.push(args.options.password)
+    sArgs.push(pdfPath)
+
+    delete args.options.keyStore
+    delete args.options.password
+    delete args.options.pdfPath
+
+    opsOntoSpawnArgs(args.options, sArgs)
+
+    if(args.outputPath){
+      sArgs.push('-out')
+      sArgs.push(args.outputPath)
+    }
+
+    return this.promiseJavaSpawn(sArgs)
+  }
+
+  /**  */
+  static signToBuffer(pdfPath, outputPathOrOptions, options){
+    let args = figureOutAndOptions(options)
+    const writePath = path.join(process.cwd(), 'tempBufferFile'+process.uptime()+'.pdf')
+
+    return this.sign(pdfPath, writePath, options)
+    .then(msg=>{
+      return new Promise(function(res,rej){
+        fs.readFile(writePath,(err,buffer)=>{
+          fs.unlink(writePath,e=>e)
+          if(err)return rej(err)
+          res(buffer)
+        })
+      })
+    })
+  }
+
+  /**  */
+  static signByBuffer(buffer, options){
+    const writePath = path.join(process.cwd(), 'tempBufferFile'+process.uptime()+'.pdf')
+    return new Promise(function(res,rej){
+      fs.writeFile(writePath,buffer,(err,data)=>{
+        if(err)return rej(err)
+        res(writePath)
+      })
+    })
+    .then(writePath=>this.signToBuffer(writePath, options))
+    .then(buffer=>{
+      fs.unlink(writePath,e=>e)
+      return buffer
+    })
+    .catch(e=>{
+      fs.unlink(writePath,e=>e)
+      throw e
+    })
+  }
+
   /** Takes array of objects and sets values of PDF Acroform fields
-  @pdfPath - The PDF file to read form fields from
-  @fieldArray - Array of PDF field definitions
-  @outPdfPath - Where to write PDF that has been filled
+    @pdfPath - The PDF file to read form fields from
+    @fieldArray - Array of PDF field definitions
+    @outPdfPath - Where to write PDF that has been filled
   */
   static embedFormFields(pdfPath, fieldArray, outPdfPath){
     const jsonFilePath = path.join(process.cwd(),'tempAcroformJson_'+process.uptime()+'.json')
@@ -147,10 +216,11 @@ class PdfBoxCliWrap{
 
   /**
     @pdfPath - The PDF file to encrypt
-    @outputPathOrOptions - The file to save the decrypted document to. If left blank then it will be the same as the input file || options
+    @outputPathOrOptions - The file to save the document to. If left blank then it will be the same as the input file || options
     @options - {
       O                          The owner password to the PDF, ignored if -certFile is specified.
       U                          The user password to the PDF, ignored if -certFile is specified.
+      password                   Alias of option U
       certFile                   Path to X.509 cert file.
       canAssemble                true  Set the assemble permission.
       canExtractContent          true  Set the extraction permission.
@@ -199,7 +269,7 @@ class PdfBoxCliWrap{
 
   /**
     @pdfPath - The PDF file to encrypt
-    @outputPathOrOptions - The file to save the decrypted document to. If left blank then it will be the same as the input file || options
+    @outputPathOrOptions - The file to save the document to. If left blank then it will be the same as the input file || options
     @options - {
       password Password to the PDF or certificate in keystore.
       keyStore Path to keystore that holds certificate to decrypt the document. This is only required if the document is encrypted with a certificate, otherwise only the password is required.

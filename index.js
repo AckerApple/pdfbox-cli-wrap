@@ -125,11 +125,12 @@ class PdfBoxCliWrap{
     const sArgs = ['-jar', ackPdfBoxJarPath, 'sign']
 
     sArgs.push(args.options.keyStore)
-    sArgs.push(args.options.password)
-    sArgs.push(pdfPath)
-
     delete args.options.keyStore
+    
+    sArgs.push(args.options.password)
     delete args.options.password
+    
+    sArgs.push(pdfPath)
     delete args.options.pdfPath
 
     opsOntoSpawnArgs(args.options, sArgs)
@@ -144,10 +145,10 @@ class PdfBoxCliWrap{
 
   /** see sign method */
   static signToBuffer(pdfPath, outputPathOrOptions, options){
-    let args = figureOutAndOptions(options)
+    let args = figureOutAndOptions(outputPathOrOptions, options)
     const writePath = path.join(process.cwd(), 'tempBufferFile'+process.uptime()+'.pdf')
 
-    return this.sign(pdfPath, writePath, options)
+    return this.sign(pdfPath, writePath, args.options)
     .then(msg=>{
       return new Promise(function(res,rej){
         fs.readFile(writePath,(err,buffer)=>{
@@ -168,7 +169,9 @@ class PdfBoxCliWrap{
         res(writePath)
       })
     })
-    .then(writePath=>this.signToBuffer(writePath, options))
+    .then(writePath=>{
+      return this.signToBuffer(writePath, options)
+    })
     .then(buffer=>{
       fs.unlink(writePath,e=>e)
       return buffer

@@ -142,7 +142,7 @@ class PdfBoxCliWrap{
     return this.promiseJavaSpawn(sArgs)
   }
 
-  /**  */
+  /** see sign method */
   static signToBuffer(pdfPath, outputPathOrOptions, options){
     let args = figureOutAndOptions(options)
     const writePath = path.join(process.cwd(), 'tempBufferFile'+process.uptime()+'.pdf')
@@ -159,7 +159,7 @@ class PdfBoxCliWrap{
     })
   }
 
-  /**  */
+  /** see sign method */
   static signByBuffer(buffer, options){
     const writePath = path.join(process.cwd(), 'tempBufferFile'+process.uptime()+'.pdf')
     return new Promise(function(res,rej){

@@ -392,6 +392,7 @@ class PdfBoxCliWrap{
     const tempPath = getTempFilePath('pdf','addImages')
     const imagePaths = []
 
+    //discover pdf or buffer to pdf-file
     if(fromFile){
       sArgs.push( pdfPathOrBuffer )
       deleteOut = options.toBuffer && !options.out
@@ -409,30 +410,31 @@ class PdfBoxCliWrap{
       delete options.toBuffer
     }
 
+    //add image args (possibly cast base64 to file)
     promise = promise.then(()=>{
       const promises = []
 
-      /* arguments must be added async */
-        if(imgPathArray.constructor!=Array){
-          imgPathArray = [imgPathArray]
-        }
+      if(imgPathArray.constructor!=Array){
+        imgPathArray = [imgPathArray]
+      }
 
-        imgPathArray.forEach(item=>{
-          promises.push(
-            imgDefToPath(item)
-            .then(imgPath=>{
-              imagePaths.push({path:imgPath, isBase64:item!=imgPath})
-              sArgs.push(imgPath)
-            })
-          )
-        })
-        
-        opsOntoSpawnArgs(options, sArgs)
-      /* end */
-
+      imgPathArray.forEach(item=>{
+        promises.push(
+          imgDefToPath(item)
+          .then(imgPath=>{
+            imagePaths.push({path:imgPath, isBase64:item!=imgPath})
+            sArgs.push(imgPath)
+          })
+        )
+      })
+      
       return Promise.all(promises)
     })
-    .then(()=>this.promiseJavaSpawn(sArgs))
+
+    promise = promise.then(()=>{
+      opsOntoSpawnArgs(options, sArgs)
+      return this.promiseJavaSpawn(sArgs)
+    })
 
     if(toBuffer){
       promise = promise.then(()=>this.fileToBuffer(options.out, deleteOut))

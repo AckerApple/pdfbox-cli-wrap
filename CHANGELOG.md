@@ -1,7 +1,7 @@
 # pdfbox-cli-wrap - Change Log
 All notable changes to this project will be documented here.
 
-## [1.0.24] - 2017-01-10
+## [1.0.26] - 2017-01-10
 ### Added
 - addImages
 

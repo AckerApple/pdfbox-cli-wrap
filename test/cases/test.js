@@ -11,6 +11,7 @@ const enc = path.join(assetPath,'encrypted.pdf')
 
 const cert = path.join(assetPath,'pdfbox-test.crt')
 const key = path.join(assetPath,'pdfbox-test.p12')
+const base64img = require('./base64img.json')
 
 describe('pdfboxCliWrap',function(){
   this.timeout(10000)//decrypt process takes more time than encrypt
@@ -47,16 +48,28 @@ describe('pdfboxCliWrap',function(){
       .then(done).catch(done)
     })
 
-    it('addImages',done=>{
-      const imgPath = path.join(assetPath,'testImage.JPG')
-      
-      pdfboxCliWrap.addImages(dec, [imgPath,imgPath], {y:-1, page:-1, toBuffer:true})
-      .then(buffer=>pdfboxCliWrap.addImages(buffer, [imgPath], {y:-1, page:-1, out:dec2}))
-      .then(()=>{
-        assert.equal(fs.existsSync(dec2), true)
-        if(deleteFiles)fs.unlink(dec2,e=>e)
+    describe('#addImages',()=>{    
+      it('3 pages of images',done=>{
+        const imgPath = path.join(assetPath,'testImage.JPG')
+        
+        pdfboxCliWrap.addImages(dec, [imgPath,imgPath], {y:-1, page:-1, toBuffer:true})
+        .then(buffer=>pdfboxCliWrap.addImages(buffer, imgPath, {y:-1, page:-1, out:dec2}))
+        .then(()=>{
+          assert.equal(fs.existsSync(dec2), true)
+          if(deleteFiles)fs.unlink(dec2,e=>e)
+        })
+        .then(done).catch(done)
       })
-      .then(done).catch(done)
+
+      it('add base64 image',done=>{
+        pdfboxCliWrap.addImages(dec, [base64img,base64img], {y:-1, page:-1, toBuffer:true})
+        .then(buffer=>pdfboxCliWrap.addImages(buffer, base64img, {y:-1, page:-1, out:dec2}))
+        .then(()=>{
+          assert.equal(fs.existsSync(dec2), true)
+          if(deleteFiles)fs.unlink(dec2,e=>e)
+        })
+        .then(done).catch(done)
+      })
     })
 
     describe('timestamp signatures',()=>{

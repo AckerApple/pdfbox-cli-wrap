@@ -1,6 +1,6 @@
 {
   "name": "pdfbox-cli-wrap",
-  "version": "1.0.24",
+  "version": "1.0.25",
   "description": "A wrapper for making PDFBox CLI commands",
   "main": "index.js",
   "scripts": {

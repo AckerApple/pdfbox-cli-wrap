@@ -65,7 +65,7 @@ pdfboxCliWrap.pdfToImage(readablePdf)
 ### Add Images
 Insert one image at one specific location, or append multiple images, and more...
 
-Example Insert Image into Page
+Example Insert Image File into Page
 ```
 const pdfboxCliWrap = require('pdfbox-cli-wrap')
 const readablePdf = path.join(__dirname,'readable.pdf')
@@ -74,6 +74,19 @@ const options = {x:200, y:200, page:0, width:100, height:100}
 pdfboxCliWrap.addImages(readablePdf, imgPath0, options)
 .then(()=>{
   console.log("Image Inserted")
+})
+.catch(e=>console.error(e))
+```
+
+Example Insert Image Base64 into Page
+```
+const pdfboxCliWrap = require('pdfbox-cli-wrap')
+const readablePdf = path.join(__dirname,'readable.pdf')
+const options = {x:200, y:200, page:0, width:100, height:100}
+
+pdfboxCliWrap.addImages(readablePdf, 'data:image/png;base64,...', options)
+.then(()=>{
+  console.log("Base64 Image Inserted")
 })
 .catch(e=>console.error(e))
 ```
@@ -465,7 +478,7 @@ Will create one image for the first page of a PDF document. Use pdfToImages to m
 Insert a single image into a PDF or append multi images as individual pages
 
 - **pdfPath** - The PDF file to encrypt
-- **imagesPath** - The file image(s) to append to document. Allows multiple image arguments, which is great for appending photos as pages.
+- **imagesPath** - The file image(s) to append to document. Allows multiple image arguments, which is great for appending photos as pages. Allows base64 strings.
 - **options**
   - **out** - The file to save the decrypted document to. If left blank then it will be the same as the input file || options
   - **page** - The page number where to drop image. Use -1 to append on a new page

@@ -378,30 +378,60 @@ class PdfBoxCliWrap{
   }
 
   static addImages(pdfPathOrBuffer, imgPathArray, options){
-    options = options || {}
+    options = Object.assign({}, options || {})//clone
     const sArgs = ['-jar', ackPdfBoxJarPath, 'add-image']
 
-    if(pdfPathOrBuffer.constructor==String){
+    const fromFile = pdfPathOrBuffer.constructor==String
+    let toBuffer = false
+    let deleteOut = false
+    let promise = Promise.resolve(pdfPathOrBuffer)
+    const tempPath = this.getTempFilePath('pdf','addImages')
+
+    if(fromFile){
       sArgs.push( pdfPathOrBuffer )
-      options.out = options.out || pdfPathOrBuffer//overwrite
+      deleteOut = options.toBuffer && !options.out
+      options.out = deleteOut ? tempPath : options.out
     }else{
-      options.out = this.getTempFilePath('pdf','addImages')
-      options.toBuffer = true;
-      throw 'addImages currently only supports string pdf paths'
+      deleteOut = true
+      toBuffer = !options.out
+      options.out = options.out || tempPath
+      promise = promise.then( ()=>this.bufferToFile(pdfPathOrBuffer,'pdf','addImages') )
+      .then( buffPath=>sArgs.push(buffPath) )
     }
-
-    if(imgPathArray.constructor==Array){
-      sArgs.push.apply(sArgs, imgPathArray)
-    }else{
-      sArgs.push( imgPathArray )
-    }
-    
-    opsOntoSpawnArgs(options, sArgs)
-
-    let promise = this.promiseJavaSpawn(sArgs)
 
     if(options.toBuffer){
-      promise = promise.then(()=>this.fileToBuffer(options.out, true))
+      toBuffer = options.toBuffer
+      delete options.toBuffer
+    }
+
+    promise = promise.then(()=>{
+      /* arguments must be added async */
+        if(imgPathArray.constructor==Array){
+          sArgs.push.apply(sArgs, imgPathArray)
+        }else{
+          sArgs.push( imgPathArray )
+        }
+        
+        opsOntoSpawnArgs(options, sArgs)
+      /* end */
+
+      return this.promiseJavaSpawn(sArgs)
+    })
+
+    if(toBuffer){
+      promise = promise.then(()=>this.fileToBuffer(options.out, deleteOut))
+    }
+
+    if(!fromFile){
+      promise = promise
+      .then(x=>{
+        fs.unlink(tempPath,e=>e)
+        return x
+      })
+      .catch(err=>{
+        fs.unlink(tempPath,e=>e)
+        throw err
+      })
     }
 
     return promise

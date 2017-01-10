@@ -50,7 +50,8 @@ describe('pdfboxCliWrap',function(){
     it('addImages',done=>{
       const imgPath = path.join(assetPath,'testImage.JPG')
       
-      pdfboxCliWrap.addImages(dec, [imgPath,imgPath,imgPath], {y:-1, page:-1, out:dec2})
+      pdfboxCliWrap.addImages(dec, [imgPath,imgPath], {y:-1, page:-1, toBuffer:true})
+      .then(buffer=>pdfboxCliWrap.addImages(buffer, [imgPath], {y:-1, page:-1, out:dec2}))
       .then(()=>{
         assert.equal(fs.existsSync(dec2), true)
         if(deleteFiles)fs.unlink(dec2,e=>e)
@@ -67,8 +68,7 @@ describe('pdfboxCliWrap',function(){
         if(deleteFiles)fs.unlink(imgPath,e=>e)
         
         pdfboxCliWrap.sign(dec,dec2,signOps)
-        .then(x=>{
-          console.log(x)
+        .then(()=>{
           assert.equal(fs.existsSync(dec2), true)
         })
         .then(()=>deleteFiles?fs.unlink(dec2,e=>e):null)
@@ -83,8 +83,7 @@ describe('pdfboxCliWrap',function(){
         const newSignOps = Object.assign({tsa:'http://freetsa.org/tsr'}, signOps)
 
         pdfboxCliWrap.sign(dec,dec2,newSignOps)
-        .then(x=>{
-          console.log(x)
+        .then(()=>{
           assert.equal(fs.existsSync(dec2), true)
         })
         .then(()=>deleteFiles?fs.unlink(dec2,e=>e):null)
@@ -128,6 +127,8 @@ describe('pdfboxCliWrap',function(){
           assert.equal(myFields.CheckBox3.value, "Yes")
           assert.equal(myFields.CheckBox4.value, "Off")
           assert.equal(myFields.CheckBox5.value, "Yes")
+
+          if(deleteFiles)fs.unlink(dec2,e=>e)
         })
         .then(done).catch(done)
       })
@@ -162,7 +163,7 @@ describe('pdfboxCliWrap',function(){
 
           throw err
         })
-        //.then( ()=>deleteFiles?fs.unlink(enc,e=>e):null )
+        .then( ()=>deleteFiles?fs.unlink(enc,e=>e):null )
         .then(done).catch(done)
       })
 

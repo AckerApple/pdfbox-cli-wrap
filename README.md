@@ -13,6 +13,7 @@ This package allows for the following PDF functionality:
 - [Purpose](#purpose)
 - [Examples](#examples)
   - [PDF to One Image](#pdf-to-one-image)
+  - [Add Images](#add-images)
   - [Read Acroform](#read-acroform)
   - [Fill Acroform](#fill-acroform)
   - [Embed Timestamp Signature](#embed-timestamp-signature)
@@ -35,6 +36,7 @@ This package allows for the following PDF functionality:
   - [decrypt](#decrypt)
   - [pdfToImages](#pdftoimages)
   - [pdfToImage](#pdftoimage)
+  - [addImages](#addimages)
 - [Resources](#resources)
 
 ## Purpose
@@ -60,6 +62,38 @@ pdfboxCliWrap.pdfToImage(readablePdf)
 
 > For multiple images of pages use the method: .pdfToImages(pdf, options)
 
+### Add Images
+Insert one image at one specific location, or append multiple images, and more...
+
+Example Insert Image into Page
+```
+const pdfboxCliWrap = require('pdfbox-cli-wrap')
+const readablePdf = path.join(__dirname,'readable.pdf')
+const options = {x:200, y:200, page:0, width:100, height:100}
+
+pdfboxCliWrap.addImages(readablePdf, imgPath0, options)
+.then(()=>{
+  console.log("Image Inserted")
+})
+.catch(e=>console.error(e))
+```
+
+Example Append Images as Pages
+```
+const pdfboxCliWrap = require('pdfbox-cli-wrap')
+const readablePdf = path.join(__dirname,'readable.pdf')
+const options = {
+  y:-1,//very top of page
+  page:-1,//a new page will be created for image insert
+  width:'100%'//width of page to image width will be calclated into a constrained size
+}
+
+pdfboxCliWrap.addImages(readablePdf,[imgPath0, imgPath1], options)
+.then(()=>{
+  console.log("Images Added as Pages to Original PDF File")
+})
+.catch(e=>console.error(e))
+```
 
 ### Read Acroform
 Read PDf form fields as an array of objects
@@ -324,10 +358,14 @@ npm test
 - Returns array of objects
 - **pdfPath** - The PDF file to read form fields from
 
+[examples](#read-acroform)
+
 ### getFormFieldsAsObject
 Read Acroform fields from a PDF as object-of-objects where each key is the fullyQualifiedName of input field
 
 - **pdfPath** - The PDF file to read form fields from
+
+[examples](#read-acroform)
 
 ### embedFormFields
 Takes array-of-objects and sets values of PDF Acroform fields
@@ -336,12 +374,16 @@ Takes array-of-objects and sets values of PDF Acroform fields
 - **fieldArray** - Array of PDF field definitions
 - **outPdfPath** - Where to write PDF that has been filled
 
+[examples](#fill-acroform)
+
 ### embedFormFieldsByObject
 Fill Acroform fields from a PDF with an array-of-objects to set the values of input fields
 
 - **pdfPath** - The PDF file to read form fields from
 - **fieldArray** - Array of PDF field definitions
 - **outPdfPath** - Where to write PDF that has been filled
+
+[examples](#fill-acroform)
 
 ### sign
 Will embed timestamp signature with optional TSA option
@@ -353,6 +395,8 @@ Will embed timestamp signature with optional TSA option
   - **tsa** - url - sign timestamp using the given TSA server
   - **out** - path - pdf output path
   - **e** - sign using external signature creation scenario
+
+[examples](#embed-timestamp-signature)
 
 ### signToBuffer
 See [sign](#sign)
@@ -386,6 +430,8 @@ Will encrypt a PDF document
     - **canPrintDegraded**:           true  Set the print degraded permission.
     - **keyLength**:                  40, 128 or 256  The number of bits for the encryption key. For 128 and above bits Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files must be installed.
 
+[examples](#encrypt-decrypt-by-password)
+
 ### decrypt
 Will decrypt a PDF document
 
@@ -395,6 +441,8 @@ Will decrypt a PDF document
     - **password**: Password to the PDF or certificate in keystore.
     - **keyStore**: Path to keystore that holds certificate to decrypt the document (typically a .p12 file). This is only required if the document is encrypted with a certificate, otherwise only the password is required.
     - **alias**:    The alias to the certificate in the keystore.
+
+[examples](#encrypt-decrypt-by-certificate)
 
 ### pdfToImages
 Will create an image for any or every page in a PDF document.
@@ -406,9 +454,27 @@ Will create an image for any or every page in a PDF document.
 - **endPage** - The last page to convert, one based.
 - **nonSeq** - false Use the new non sequential parser.
 
+[examples](#pdf-to-one-image)
+
 ### pdfToImage
 Will create one image for the first page of a PDF document. Use pdfToImages to makes images of other pages
 
+[examples](#pdf-to-one-image)
+
+### addImages
+Insert a single image into a PDF or append multi images as individual pages
+
+- **pdfPath** - The PDF file to encrypt
+- **imagesPath** - The file image(s) to append to document. Allows multiple image arguments, which is great for appending photos as pages.
+- **options**
+  - **out** - The file to save the decrypted document to. If left blank then it will be the same as the input file || options
+  - **page** - The page number where to drop image. Use -1 to append on a new page
+  - **x** - The x cord where to drop image
+  - **y** - The y cord where to drop image. Use -1 for top
+  - **width** - default is image width. Accepts percent width
+  - **height** - default is image height
+
+[examples](#add-images)
 
 ## Resources
 

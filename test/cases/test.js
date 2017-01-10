@@ -6,7 +6,7 @@ const path = require('path')
 
 const assetPath = path.join(__dirname, '../','assets')
 const dec = path.join(assetPath,'unencrypted.pdf')
-const dec2 = path.join(assetPath,'unencrypted2.pdf')
+const dec2 = path.join(assetPath,'unencrypted2.pdf')//file is created at runtime. should never exist otherwise
 const enc = path.join(assetPath,'encrypted.pdf')
 
 const cert = path.join(assetPath,'pdfbox-test.crt')
@@ -47,19 +47,52 @@ describe('pdfboxCliWrap',function(){
       .then(done).catch(done)
     })
 
-    it('#sign',done=>{
-      const imgPath = path.join(dec,'../','unencrypted1.jpg')
+    it('addImages',done=>{
+      const imgPath = path.join(assetPath,'testImage.JPG')
       
-      if(deleteFiles)fs.unlink(imgPath,e=>e)
-      
-      pdfboxCliWrap.sign(dec,dec2,{keyStore:key,password:'pdfbox-test-password'})
-      .then(x=>{
-        console.log(x)
+      pdfboxCliWrap.addImages(dec, [imgPath,imgPath,imgPath], {y:-1, page:-1, out:dec2})
+      .then(()=>{
         assert.equal(fs.existsSync(dec2), true)
+        if(deleteFiles)fs.unlink(dec2,e=>e)
       })
-      .then(()=>deleteFiles?fs.unlink(dec2,e=>e):null)
       .then(done).catch(done)
     })
+
+    describe('timestamp signatures',()=>{
+      const signOps = {keyStore:key,password:'pdfbox-test-password'}
+
+      it('#sign',done=>{
+        const imgPath = path.join(dec,'../','unencrypted1.jpg')
+        
+        if(deleteFiles)fs.unlink(imgPath,e=>e)
+        
+        pdfboxCliWrap.sign(dec,dec2,signOps)
+        .then(x=>{
+          console.log(x)
+          assert.equal(fs.existsSync(dec2), true)
+        })
+        .then(()=>deleteFiles?fs.unlink(dec2,e=>e):null)
+        .then(done).catch(done)
+      })
+
+      it('#sign(tsa)',done=>{
+        const imgPath = path.join(dec,'../','unencrypted1.jpg')
+        
+        if(deleteFiles)fs.unlink(imgPath,e=>e)
+        
+        const newSignOps = Object.assign({tsa:'http://freetsa.org/tsr'}, signOps)
+
+        pdfboxCliWrap.sign(dec,dec2,newSignOps)
+        .then(x=>{
+          console.log(x)
+          assert.equal(fs.existsSync(dec2), true)
+        })
+        .then(()=>deleteFiles?fs.unlink(dec2,e=>e):null)
+        .then(done).catch(done)
+      })
+      
+    })
+
 
     describe("acroforms",()=>{
       it("getFormFields",done=>{
@@ -117,9 +150,9 @@ describe('pdfboxCliWrap',function(){
       it('#encryptToBuffer{password}',done=>{
         const config = {'password':'123abc'}
         pdfboxCliWrap.encryptToBuffer(dec, config)
-        .then(buffer=>pdfboxCliWrap.decryptByBuffer(buffer, config))
-        .then(buffer=>pdfboxCliWrap.encryptByBuffer(buffer, config))
-        .then(buffer=>pdfboxCliWrap.decryptByBuffer(buffer, config))
+        .then( buffer=>pdfboxCliWrap.decryptByBuffer(buffer, config) )
+        .then( buffer=>pdfboxCliWrap.encryptByBuffer(buffer, config) )
+        .then( buffer=>pdfboxCliWrap.decryptByBuffer(buffer, config) )
         .then( buffer=>pdfboxCliWrap.decryptByBuffer(buffer) )//already decrypted, will cause error
         .catch(err=>{
           if(err && err.message){

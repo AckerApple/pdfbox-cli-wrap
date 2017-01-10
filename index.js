@@ -143,43 +143,33 @@ class PdfBoxCliWrap{
     return this.promiseJavaSpawn(sArgs)
   }
 
-  /** see sign method */
-  static signToBuffer(pdfPath, outputPathOrOptions, options){
-    let args = figureOutAndOptions(outputPathOrOptions, options)
-    const writePath = path.join(process.cwd(), 'tempBufferFile'+process.uptime()+'.pdf')
-
-    return this.sign(pdfPath, writePath, args.options)
-    .then(msg=>{
-      return new Promise(function(res,rej){
-        fs.readFile(writePath,(err,buffer)=>{
-          fs.unlink(writePath,e=>e)
-          if(err)return rej(err)
-          res(buffer)
-        })
+  static fileToBuffer(readPath, deleteFile){
+    return new Promise(function(res,rej){
+      fs.readFile(readPath,(err,buffer)=>{
+        if(deleteFile){
+          fs.unlink(readPath,e=>e)
+        }
+        
+        if(err)return rej(err)
+        
+        res(buffer)
       })
     })
   }
 
   /** see sign method */
+  static signToBuffer(pdfPath, outputPathOrOptions, options){
+    let args = figureOutAndOptions(outputPathOrOptions, options)
+    const writePath = this.getTempFilePath('pdf', 'tempSign')
+
+    return this.sign(pdfPath, writePath, args.options)
+    .then(msg=>this.fileToBuffer(writePath, true))
+  }
+
+  /** see sign method */
   static signByBuffer(buffer, options){
-    const writePath = path.join(process.cwd(), 'tempBufferFile'+process.uptime()+'.pdf')
-    return new Promise(function(res,rej){
-      fs.writeFile(writePath,buffer,(err,data)=>{
-        if(err)return rej(err)
-        res(writePath)
-      })
-    })
-    .then(writePath=>{
-      return this.signToBuffer(writePath, options)
-    })
-    .then(buffer=>{
-      fs.unlink(writePath,e=>e)
-      return buffer
-    })
-    .catch(e=>{
-      fs.unlink(writePath,e=>e)
-      throw e
-    })
+    return this.bufferToFile(buffer,'pdf','signByBuffer')
+    .then( tempSignPath=>this.signToBuffer(tempSignPath, options) )
   }
 
   /** Takes array of objects and sets values of PDF Acroform fields
@@ -188,12 +178,17 @@ class PdfBoxCliWrap{
     @outPdfPath - Where to write PDF that has been filled
   */
   static embedFormFields(pdfPath, fieldArray, outPdfPath){
-    const jsonFilePath = path.join(process.cwd(),'tempAcroformJson_'+process.uptime()+'.json')
+    const jsonFilePath = this.getTempFilePath('json','tempAcroformJson_')
     const sArgs = ['-jar', ackPdfBoxJarPath, 'fill', pdfPath, jsonFilePath, outPdfPath]
     fieldArray = JSON.stringify(fieldArray, null, 2)
-    fs.writeFileSync(jsonFilePath, fieldArray)
-    
-    return this.promiseJavaSpawn(sArgs)
+
+    return new Promise(function(res,rej){
+      fs.writeFile(jsonFilePath, fieldArray, (err,data)=>{
+        if(err)return rej(err)
+        res()
+      })
+    })
+    .then(()=>this.promiseJavaSpawn(sArgs))
     .then(data=>{
       fs.unlink(jsonFilePath,function(){})
       return data
@@ -256,18 +251,10 @@ class PdfBoxCliWrap{
 
   static encryptToBuffer(pdfPath, options){
     let args = figureOutAndOptions(options)
-    const writePath = path.join(process.cwd(), 'tempBufferFile'+process.uptime()+'.pdf')
+    const encTempPath = this.getTempFilePath('pdf','encryptToBuffer')
 
-    return this.encrypt(pdfPath, writePath, options)
-    .then(()=>{
-      return new Promise(function(res,rej){
-        fs.readFile(writePath,(err,buffer)=>{
-          fs.unlink(writePath,e=>e)
-          if(err)return rej(err)
-          res(buffer)
-        })
-      })
-    })
+    return this.encrypt(pdfPath, encTempPath, options)
+    .then(()=>this.fileToBuffer(encTempPath, true))
   }
 
   /**
@@ -294,54 +281,58 @@ class PdfBoxCliWrap{
 
   static decryptToBuffer(pdfPath, options){
     let args = figureOutAndOptions(options)
-    const writePath = path.join(process.cwd(), 'tempBufferFile'+process.uptime()+'.pdf')
+    const decTempPath = this.getTempFilePath('pdf','decryptToBuffer')
 
-    return this.decrypt(pdfPath, writePath, options)
-    .then(msg=>{
-      return new Promise(function(res,rej){
-        fs.readFile(writePath,(err,buffer)=>{
-          fs.unlink(writePath,e=>e)
-          if(err)return rej(err)
-          res(buffer)
-        })
-      })
-    })
+    return this.decrypt(pdfPath, decTempPath, options)
+    .then(msg=>this.fileToBuffer(decTempPath, true))
   }
 
   static encryptByBuffer(buffer, options){
-    const writePath = path.join(process.cwd(), 'tempBufferFile'+process.uptime()+'.pdf')
-    return new Promise(function(res,rej){
-      fs.writeFile(writePath,buffer,(err,data)=>{
-        if(err)return rej(err)
-        res(writePath)
-      })
-    })
-    .then(writePath=>this.encryptToBuffer(writePath, options))
+    let encTempPath = null
+    
+    return this.bufferToFile(buffer, 'pdf', 'encryptByBuffer')
+    .then(path=>encTempPath=path)
+    .then(()=>this.encryptToBuffer(encTempPath, options))
     .then(buffer=>{
-      fs.unlink(writePath,e=>e)
+      fs.unlink(encTempPath,e=>e)
       return buffer
     })
     .catch(e=>{
-      fs.unlink(writePath,e=>e)
+      fs.unlink(encTempPath,e=>e)
       throw e
+    })
+
+  }
+
+  static getTempFileName(ext, prefix){
+    return (prefix||'tempBufferFile') + process.uptime() + '.'+ (ext||'pdf')
+  }
+
+  static getTempFilePath(ext, prefix){
+    return path.join(process.cwd(), this.getTempFileName(ext, prefix)) 
+  }
+
+  static bufferToFile(buffer, ext, prefix){
+    const buffTempPath = this.getTempFilePath((ext||'pdf'), (prefix||'bufferToFile'))
+    return new Promise(function(res,rej){
+      fs.writeFile(buffTempPath,buffer,(err,data)=>{
+        if(err)return rej(err)
+        res(buffTempPath)
+      })
     })
   }
 
   static decryptByBuffer(buffer, options){
-    const writePath = path.join(process.cwd(), 'tempBufferFile'+process.uptime()+'.pdf')
-    return new Promise(function(res,rej){
-      fs.writeFile(writePath,buffer,(err,data)=>{
-        if(err)return rej(err)
-        res(writePath)
-      })
-    })
-    .then(writePath=>this.decryptToBuffer(writePath, options))
+    let wPath = null
+    return this.bufferToFile(buffer, 'pdf', 'decryptByBuffer')
+    .then(writePath=>wPath=writePath)
+    .then(()=>this.decryptToBuffer(wPath, options))
     .then(buffer=>{
-      fs.unlink(writePath,e=>e)
+      fs.unlink(wPath,e=>e)
       return buffer
     })
     .catch(e=>{
-      fs.unlink(writePath,e=>e)
+      fs.unlink(wPath,e=>e)
       throw e
     })
   }
@@ -384,6 +375,36 @@ class PdfBoxCliWrap{
     opsOntoSpawnArgs(options, sArgs)
 
     return this.promiseJavaSpawn(sArgs)
+  }
+
+  static addImages(pdfPathOrBuffer, imgPathArray, options){
+    options = options || {}
+    const sArgs = ['-jar', ackPdfBoxJarPath, 'add-image']
+
+    if(pdfPathOrBuffer.constructor==String){
+      sArgs.push( pdfPathOrBuffer )
+      options.out = options.out || pdfPathOrBuffer//overwrite
+    }else{
+      options.out = this.getTempFilePath('pdf','addImages')
+      options.toBuffer = true;
+      throw 'addImages currently only supports string pdf paths'
+    }
+
+    if(imgPathArray.constructor==Array){
+      sArgs.push.apply(sArgs, imgPathArray)
+    }else{
+      sArgs.push( imgPathArray )
+    }
+    
+    opsOntoSpawnArgs(options, sArgs)
+
+    let promise = this.promiseJavaSpawn(sArgs)
+
+    if(options.toBuffer){
+      promise = promise.then(()=>this.fileToBuffer(options.out, true))
+    }
+
+    return promise
   }
 }
 PdfBoxCliWrap.jarPath = ackPdfBoxJarPath//helpful ref to where Jar file lives

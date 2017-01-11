@@ -168,8 +168,18 @@ class PdfBoxCliWrap{
 
   /** see sign method */
   static signByBuffer(buffer, options){
+    let writePath = null
     return this.bufferToFile(buffer,'pdf','signByBuffer')
-    .then( tempSignPath=>this.signToBuffer(tempSignPath, options) )
+    .then( tempSignPath=>writePath=tempSignPath )
+    .then( ()=>this.signToBuffer(writePath, options) )
+    .then(data=>{
+      fs.unlink(writePath,e=>e)
+      return data
+    })
+    .catch(e=>{
+      fs.unlink(writePath,e=>e)
+      throw e
+    })
   }
 
   /** Takes array of objects and sets values of PDF Acroform fields
@@ -380,7 +390,7 @@ class PdfBoxCliWrap{
       width  : default is image width. Accepts percent width
       height : default is image height  
     }
- */
+  */
   static addImages(pdfPathOrBuffer, imgPathArray, options){
     options = Object.assign({}, options || {})//clone
     const sArgs = ['-jar', ackPdfBoxJarPath, 'add-image']
@@ -391,18 +401,22 @@ class PdfBoxCliWrap{
     let promise = Promise.resolve(pdfPathOrBuffer)
     const tempPath = getTempFilePath('pdf','addImages')
     const imagePaths = []
+    let buffDelete = null
 
     //discover pdf or buffer to pdf-file
     if(fromFile){
       sArgs.push( pdfPathOrBuffer )
-      deleteOut = options.toBuffer && !options.out
+      deleteOut = options.toBuffer || !options.out
       options.out = deleteOut ? tempPath : options.out
     }else{
       deleteOut = true
       toBuffer = !options.out
       options.out = options.out || tempPath
-      promise = promise.then( ()=>this.bufferToFile(pdfPathOrBuffer,'pdf','addImages') )
-      .then( buffPath=>sArgs.push(buffPath) )
+      promise = promise.then( ()=>this.bufferToFile(pdfPathOrBuffer,'pdf','addImages'))
+      .then(buffPath=>{
+        buffDelete = buffPath
+        sArgs.push(buffPath)
+      })
     }
 
     if(options.toBuffer){
@@ -440,39 +454,53 @@ class PdfBoxCliWrap{
       promise = promise.then(()=>this.fileToBuffer(options.out, deleteOut))
     }
 
-    if(!fromFile){
-      promise = promise
-      .then(x=>{
-        fs.unlink(tempPath,e=>e)
-        return x
-      })
-      .catch(err=>{
-        fs.unlink(tempPath,e=>e)
-        throw err
-      })
-    }
+    function cleanup(x){
+      const promises = []
 
-    function cleanup(){
+      if(deleteOut && options.out==tempPath){
+        fs.unlink(options.out,e=>e)
+        //promises.push( this.promiseDelete(options.out) )
+      }
+
       imagePaths.forEach(item=>{
         if(item.isBase64)fs.unlink(item.path,e=>e)
       })
+
+      if(buffDelete){
+        fs.unlink(buffDelete,e=>e)
+      }
+
+      //return x
+      return Promise.all(promises).then(()=>x)
     }
 
     return promise
-    .then(x=>{
-      cleanup()
-      return x
-    })
+    .then(cleanup)
     .catch(e=>{
       cleanup()
       throw e
+    })
+  }
+
+  static promiseDelete(path, ignoreFileNotFound){
+    return new Promise(function(res,rej){
+      fs.unlink(path,e=>{
+        if(e){
+          if(e.message && e.message.indexOf('ENOENT')>=0){
+            return res()//file didn't exist
+          }
+          return rej(e)
+        }
+        
+        res()
+      })
     })
   }
 }
 PdfBoxCliWrap.jarPath = ackPdfBoxJarPath//helpful ref to where Jar file lives
 
 function getTempFileName(ext, prefix){
-  return (prefix||'tempBufferFile') + process.uptime() + '.'+ (ext||'pdf')
+  return '_' + (prefix||'tempBufferFile') + process.uptime() + '.'+ (ext||'pdf')
 }
 
 function getTempFilePath(ext, prefix){

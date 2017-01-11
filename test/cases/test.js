@@ -38,26 +38,26 @@ describe('pdfboxCliWrap',function(){
     it('#pdfToImage',done=>{
       const imgPath = path.join(dec,'../','unencrypted1.jpg')
       
-      if(deleteFiles)fs.unlink(imgPath,e=>e)
-      
-      pdfboxCliWrap.pdfToImage(dec)
+      pdfboxCliWrap.promiseDelete(dec2, true)
+      .then( ()=>pdfboxCliWrap.pdfToImage(dec) )
       .then(x=>{
         assert.equal(fs.existsSync(imgPath), true)
       })
-      .then(()=>deleteFiles?fs.unlink(imgPath,e=>e):null)
+      .then(()=>deleteFiles?pdfboxCliWrap.promiseDelete(imgPath):null)
+      .then(()=>deleteFiles?pdfboxCliWrap.promiseDelete(dec2):null)
       .then(done).catch(done)
     })
 
-    describe('#addImages',()=>{    
+    describe('#addImages',()=>{
       it('3 pages of images',done=>{
         const imgPath = path.join(assetPath,'testImage.JPG')
         
         pdfboxCliWrap.addImages(dec, [imgPath,imgPath], {y:-1, page:-1, toBuffer:true})
         .then(buffer=>pdfboxCliWrap.addImages(buffer, imgPath, {y:-1, page:-1, out:dec2}))
         .then(()=>{
-          assert.equal(fs.existsSync(dec2), true)
-          if(deleteFiles)fs.unlink(dec2,e=>e)
+          assert.equal(fs.existsSync(dec2), true, "file not found: "+dec2)
         })
+        .then(()=>deleteFiles?pdfboxCliWrap.promiseDelete(dec2):null)
         .then(done).catch(done)
       })
 
@@ -65,8 +65,8 @@ describe('pdfboxCliWrap',function(){
         pdfboxCliWrap.addImages(dec, [base64img,base64img], {y:-1, page:-1, toBuffer:true})
         .then(buffer=>pdfboxCliWrap.addImages(buffer, base64img, {y:-1, page:-1, out:dec2}))
         .then(()=>{
-          assert.equal(fs.existsSync(dec2), true)
-          if(deleteFiles)fs.unlink(dec2,e=>e)
+          assert.equal(fs.existsSync(dec2), true, "file not found: "+dec2)
+          if(deleteFiles)return pdfboxCliWrap.promiseDelete(dec2)
         })
         .then(done).catch(done)
       })
@@ -84,7 +84,7 @@ describe('pdfboxCliWrap',function(){
         .then(()=>{
           assert.equal(fs.existsSync(dec2), true)
         })
-        .then(()=>deleteFiles?fs.unlink(dec2,e=>e):null)
+        .then(()=>deleteFiles?pdfboxCliWrap.promiseDelete(dec2):null)
         .then(done).catch(done)
       })
 
@@ -99,7 +99,7 @@ describe('pdfboxCliWrap',function(){
         .then(()=>{
           assert.equal(fs.existsSync(dec2), true)
         })
-        .then(()=>deleteFiles?fs.unlink(dec2,e=>e):null)
+        .then(()=>deleteFiles?pdfboxCliWrap.promiseDelete(dec2):null)
         .then(done).catch(done)
       })
       
@@ -140,9 +140,8 @@ describe('pdfboxCliWrap',function(){
           assert.equal(myFields.CheckBox3.value, "Yes")
           assert.equal(myFields.CheckBox4.value, "Off")
           assert.equal(myFields.CheckBox5.value, "Yes")
-
-          if(deleteFiles)fs.unlink(dec2,e=>e)
         })
+        .then(()=>deleteFiles?pdfboxCliWrap.promiseDelete(dec2):null)
         .then(done).catch(done)
       })
     })
@@ -176,7 +175,7 @@ describe('pdfboxCliWrap',function(){
 
           throw err
         })
-        .then( ()=>deleteFiles?fs.unlink(enc,e=>e):null )
+        .then(()=>deleteFiles?pdfboxCliWrap.promiseDelete(enc):null)
         .then(done).catch(done)
       })
 
@@ -188,7 +187,7 @@ describe('pdfboxCliWrap',function(){
             throw e
           }
         })
-        .then( ()=>deleteFiles?fs.unlink(enc,e=>e):null )
+        .then(()=>deleteFiles?pdfboxCliWrap.promiseDelete(enc):null)
         .then(done).catch(done)
       })
 
@@ -205,7 +204,7 @@ describe('pdfboxCliWrap',function(){
 
           throw err
         })
-        .then( ()=>deleteFiles?fs.unlink(enc,e=>e):null )
+        .then(()=>deleteFiles?pdfboxCliWrap.promiseDelete(enc):null)
         .then(done).catch(done)
       })
 
@@ -217,7 +216,7 @@ describe('pdfboxCliWrap',function(){
             throw e
           }
         })
-        .then( ()=>deleteFiles?fs.unlink(enc,e=>e):null )
+        .then(()=>deleteFiles?pdfboxCliWrap.promiseDelete(enc):null)
         .then(done).catch(done)
       })
 
@@ -233,8 +232,8 @@ describe('pdfboxCliWrap',function(){
 
           throw err
         })
-        .then( ()=>deleteFiles?fs.unlink(enc,e=>e):null )
-        .then( ()=>deleteFiles?fs.unlink(dec2,e=>e):null )
+        .then(()=>deleteFiles?pdfboxCliWrap.promiseDelete(enc):null)
+        .then(()=>deleteFiles?pdfboxCliWrap.promiseDelete(dec2):null)
         .then(done).catch(done)
       })
     })

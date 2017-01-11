@@ -1,8 +1,9 @@
 # pdfbox-cli-wrap - Change Log
 All notable changes to this project will be documented here.
 
-## [1.0.27] - 2017-01-10
+## [1.0.28] - 2017-01-10
 ### Fix
+- temp file naming convention
 - file async deletions
 
 ## [1.0.26] - 2017-01-10

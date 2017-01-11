@@ -455,7 +455,7 @@ class PdfBoxCliWrap{
     }
 
     function cleanup(x){
-      const promises = []
+      //const promises = []
 
       if(deleteOut && options.out==tempPath){
         fs.unlink(options.out,e=>e)
@@ -470,8 +470,8 @@ class PdfBoxCliWrap{
         fs.unlink(buffDelete,e=>e)
       }
 
-      //return x
-      return Promise.all(promises).then(()=>x)
+      return x
+      //return Promise.all(promises).then(()=>x)
     }
 
     return promise
@@ -499,8 +499,9 @@ class PdfBoxCliWrap{
 }
 PdfBoxCliWrap.jarPath = ackPdfBoxJarPath//helpful ref to where Jar file lives
 
+let tempCounter = 0
 function getTempFileName(ext, prefix){
-  return '_' + (prefix||'tempBufferFile') + process.uptime() + '.'+ (ext||'pdf')
+  return '_' + (prefix||'tempBufferFile') + (++tempCounter) + '.'+ (ext||'pdf')
 }
 
 function getTempFilePath(ext, prefix){

@@ -1,7 +1,7 @@
 # pdfbox-cli-wrap - Change Log
 All notable changes to this project will be documented here.
 
-## [1.0.29] - 2017-01-17
+## [1.0.30] - 2017-01-17
 ### Added
 - option to flatten during pdf-fill
 - option.mode of base64-array to pdfToImages

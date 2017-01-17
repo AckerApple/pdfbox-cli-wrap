@@ -605,7 +605,7 @@ function imgPathArrayToBase64(imgFiles){
     const promise = new Promise(function(res,rej){
       fs.readFile(imgPath,(err,data)=>{
         if(err)return rej(err)
-        res(res.toString('base64'))
+        res(data.toString('base64'))
       })
     })
     .then(data=>{

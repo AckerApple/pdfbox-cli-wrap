@@ -38,14 +38,32 @@ describe('pdfboxCliWrap',function(){
     it('#pdfToImage',done=>{
       const imgPath = path.join(dec,'../','unencrypted1.jpg')
       
-      pdfboxCliWrap.promiseDelete(dec2, true)
-      .then( ()=>pdfboxCliWrap.pdfToImage(dec) )
+      pdfboxCliWrap.pdfToImage(dec)
       .then(x=>{
         assert.equal(fs.existsSync(imgPath), true)
       })
       .then(()=>deleteFiles?pdfboxCliWrap.promiseDelete(imgPath):null)
-      .then(()=>deleteFiles?pdfboxCliWrap.promiseDelete(dec2):null)
       .then(done).catch(done)
+    })
+
+    describe('#pdfToImages',()=>{
+      it('mode:files',done=>{
+        pdfboxCliWrap.pdfToImages(dec)
+        .then(x=>{
+          assert.equal(x.length, 1)
+          return x[0]
+        })
+        .then(x=>deleteFiles?pdfboxCliWrap.promiseDelete(x):null)
+        .then(done).catch(done)
+      })
+
+      it('mode:base-64-array',done=>{
+        pdfboxCliWrap.pdfToImages(dec,{mode:'base64-array'})
+        .then(x=>{
+          assert.equal(x.length, 1)
+        })
+        .then(done).catch(done)
+      })
     })
 
     describe('#addImages',()=>{

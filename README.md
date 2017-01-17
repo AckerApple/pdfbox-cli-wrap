@@ -14,6 +14,7 @@ This package allows for the following PDF functionality:
 - [Purpose](#purpose)
 - [Examples](#examples)
   - [PDF to One Image](#pdf-to-one-image)
+  - [PDF to Images](#pdf-to-images)
   - [Add Images](#add-images)
   - [Read Acroform](#read-acroform)
   - [Fill Acroform](#fill-acroform)
@@ -55,13 +56,23 @@ const pdfboxCliWrap = require('pdfbox-cli-wrap')
 const readablePdf = path.join(__dirname,'readable.pdf')
 
 pdfboxCliWrap.pdfToImage(readablePdf)
-.then(()=>{
-  console.log('jpg image exists in same folder as: '+readablePdf)
+.then(imgPath=>{
+  console.log('jpg image created at: '+imgPath)
 })
 .catch(e=>console.error(e))
 ```
 
-> For multiple images of pages use the method: .pdfToImages(pdf, options)
+### PDF To Images
+```
+const pdfboxCliWrap = require('pdfbox-cli-wrap')
+const readablePdf = path.join(__dirname,'readable.pdf')
+
+pdfboxCliWrap.pdfToImages(readablePdf)
+.then(pathArray=>{
+  console.log('pdf rendered to files here:', pathArray)
+})
+.catch(e=>console.error(e))
+```
 
 ### Add Images
 Insert one image at one specific location, or append multiple images, and more...
@@ -461,12 +472,15 @@ Will decrypt a PDF document
 ### pdfToImages
 Will create an image for any or every page in a PDF document.
 
-- **password** - The password to the PDF document.
-- **imageType**=jpg - The image type to write to. Currently only jpg or png.
-- **outputPrefix** - Name of PDF document  The prefix to the image file.
-- **startPage**=1 - The first page to convert, one based.
-- **endPage** - The last page to convert, one based.
-- **nonSeq** - false Use the new non sequential parser.
+- **pdfPathOrBuffer** - A buffer-of-pdf or pdf-file-path to work with
+- **options**
+  - **password** - The password to the PDF document.
+  - **imageType**=jpg - The image type to write to. Currently only jpg or png.
+  - **outputPrefix** - Name of PDF document  The prefix to the image file.
+  - **startPage**=1 - The first page to convert, one based.
+  - **endPage** - The last page to convert, one based.
+  - **nonSeq** - false Use the new non sequential parser.
+  - **mode** - "files" or "base64-array"
 
 [examples](#pdf-to-one-image)
 
@@ -478,7 +492,7 @@ Will create one image for the first page of a PDF document. Use pdfToImages to m
 ### addImages
 Insert a single image into a PDF or append multi images as individual pages
 
-- **pdfPath** - The PDF file to encrypt
+- **pdfPathOrBuffer** - A buffer-of-pdf or pdf-file-path to work with
 - **imagesPath** - The file image(s) to append to document. Allows multiple image arguments, which is great for appending photos as pages. Allows base64 strings.
 - **options**
   - **out** - The file to save the decrypted document to. If left blank then it will be the same as the input file || options

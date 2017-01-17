@@ -1,5 +1,6 @@
 //const Document = require('node-pdfbox');
 const path = require('path')
+//const ack = require('ack-host/ack-node')
 //const pdfBoxJarPath = path.join(__dirname,'pdfbox-app-2.0.3.jar')
 const ackPdfBoxPath = require.resolve("ack-pdfbox")
 const ackPdfBoxJarPath = path.join(ackPdfBoxPath, "../", "dist","ackpdfbox-1.0-SNAPSHOT-jar-with-dependencies.jar")
@@ -186,10 +187,19 @@ class PdfBoxCliWrap{
     @pdfPath - The PDF file to read form fields from
     @fieldArray - Array of PDF field definitions
     @outPdfPath - Where to write PDF that has been filled
+    @options - {
+      flatten:false
+    }
   */
-  static embedFormFields(pdfPath, fieldArray, outPdfPath){
+  static embedFormFields(pdfPath, fieldArray, outPdfPath, options){
     const jsonFilePath = getTempFilePath('json','tempAcroformJson_')
     const sArgs = ['-jar', ackPdfBoxJarPath, 'fill', pdfPath, jsonFilePath, outPdfPath]
+    
+    if(options && options.flatten){
+      sArgs.push('-flatten')
+      sArgs.push('true')
+    }
+    
     fieldArray = JSON.stringify(fieldArray, null, 2)
 
     return new Promise(function(res,rej){
@@ -357,30 +367,79 @@ class PdfBoxCliWrap{
 
     opsOntoSpawnArgs(options, sArgs)
 
-    return this.promiseJavaSpawn(sArgs)
+    return this.promiseJavaSpawn(sArgs).then(paths=>paths[0])
   }
 
   /** produces png/jpg images in same folder as pdf
-    @pdfPath - The PDF file to make images from
+    @pdfPathOrBuffer - A buffer-of-pdf or pdf-file-path to work with
     @options{
       password      : The password to the PDF document.
       imageType=jpg : The image type to write to. Currently only jpg or png.
       outputPrefix  : Name of PDF document The prefix to the image file.
       startPage=1   : The first page to convert, one based.
-      endPage=1       : The last page to convert, one based.
+      endPage=1     : The last page to convert, one based.
       nonSeq        : false Use the new non sequential parser.
+      mode          : default=files, base64-array
     }
   */
-  static pdfToImages(pdfPath, options){
-    const sArgs = ['-jar', ackPdfBoxJarPath, 'pdftoimage', pdfPath]
+  static pdfToImages(pdfPathOrBuffer, options){
+    const fromFile = pdfPathOrBuffer.constructor==String
+    let buffDelete = null
+    const sArgs = ['-jar', ackPdfBoxJarPath, 'pdftoimage']
 
-    opsOntoSpawnArgs(options, sArgs)
+    let promise = Promise.resolve(pdfPathOrBuffer)
+    let fileprefix = ''
 
-    return this.promiseJavaSpawn(sArgs)
+    if(fromFile){
+      fileprefix = pdfPathOrBuffer.split(path.sep).pop()
+      sArgs.push( pdfPathOrBuffer )
+    }else{
+      promise = promise.then( buffer=>this.bufferToFile(buffer,'pdf','pdfToImages'))
+      .then(buffPath=>{
+        buffDelete = buffPath
+        fileprefix = buffPath.split(path.sep).pop()
+        sArgs.push(buffPath)
+      })
+    }
+
+
+    let mode = 'files'
+    options = options || {}
+    const imgSuffix = options.imageType||'jpg'
+    
+    if(options.mode=='base64-array'){
+      mode = 'base64-array'
+    }
+
+    delete options.mode
+
+    promise = promise.then(()=>{
+      opsOntoSpawnArgs(options, sArgs)
+      return this.promiseJavaSpawn(sArgs)
+    })
+    .then(res=>JSON.parse(res))
+
+    if(mode=='base64-array'){
+      promise = promise.then(imgPathArrayToBase64)
+    }
+
+    function cleanup(input){
+      if(buffDelete){
+        fs.unlink(buffDelete,e=>e)
+      }
+      return input
+    }
+
+    return promise
+    .catch(e=>{
+      cleanup()
+      throw e
+    })
+    .then(cleanup)
   }
 
   /** Insert a single image into a PDF or append multi images as individual pages
-    @pdfPath - The PDF file to encrypt
+    @pdfPathOrBuffer - A buffer-of-pdf or pdf-file-path to work with
     @imagesPath - The file image(s) to append to document. Allows multiple image arguments, which is great for appending photos as pages. Allows base64 strings.
     @options{
       out    : The file to save the decrypted document to. If left blank then it will be the same as the input file || options
@@ -538,6 +597,24 @@ function imgDefToPath(item){
   }
 
   return promise
+}
+
+function imgPathArrayToBase64(imgFiles){
+  const promises = []
+  imgFiles.forEach(imgPath=>{
+    const promise = new Promise(function(res,rej){
+      fs.readFile(imgPath,(err,data)=>{
+        if(err)return rej(err)
+        res(res.toString('base64'))
+      })
+    })
+    .then(data=>{
+      fs.unlink(imgPath,e=>e)
+      return data
+    })
+    promises.push( promise )
+  })
+  return Promise.all(promises)
 }
 
 module.exports = PdfBoxCliWrap

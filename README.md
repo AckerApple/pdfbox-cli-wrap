@@ -337,16 +337,19 @@ Step #1 Create keyStore
 ```
 keytool -genkey -keyalg RSA -alias pdfbox-test-alias -keystore pdfbox-test-keystore.jks -storepass pdfbox-test-password -validity 360 -keysize 2048
 ```
+> creates file pdfbox-test-keystore.jks
 
 Step #2 Create a selfsigned certificate
 ```
 keytool -export -alias pdfbox-test-alias -file pdfbox-test.crt -keystore pdfbox-test-keystore.jks
 ```
+> creates file pdfbox-test.crt
 
 Step #3 Marry the certificate and keyStore together as a .p12 file
 ```
 keytool -importkeystore -srckeystore pdfbox-test-keystore.jks -destkeystore pdfbox-test.p12 -srcstoretype JKS -deststoretype PKCS12 -deststorepass pdfbox-test-password -srcalias pdfbox-test-alias -destalias pdfbox-test-p12
 ```
+> creates file pdfbox-test.p12
 
 You should now have the following files in targeted folder:
 
@@ -480,7 +483,7 @@ Will create an image for any or every page in a PDF document.
   - **startPage**=1 - The first page to convert, one based.
   - **endPage** - The last page to convert, one based.
   - **nonSeq** - false Use the new non sequential parser.
-  - **mode** - "files" or "base64-array"
+  - **mode** - "files" or "base64-array" or "buffer-array"
 
 [examples](#pdf-to-one-image)
 

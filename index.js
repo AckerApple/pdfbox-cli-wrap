@@ -379,7 +379,7 @@ class PdfBoxCliWrap{
       startPage=1   : The first page to convert, one based.
       endPage=1     : The last page to convert, one based.
       nonSeq        : false Use the new non sequential parser.
-      mode          : default=files, base64-array
+      mode          : default=files, base64-array, buffer-array
     }
   */
   static pdfToImages(pdfPathOrBuffer, options){
@@ -403,13 +403,9 @@ class PdfBoxCliWrap{
     }
 
 
-    let mode = 'files'
+    let mode = options.mode ? options.mode : 'files'
     options = options || {}
     const imgSuffix = options.imageType||'jpg'
-    
-    if(options.mode=='base64-array'){
-      mode = 'base64-array'
-    }
 
     delete options.mode
 
@@ -419,8 +415,14 @@ class PdfBoxCliWrap{
     })
     .then(res=>JSON.parse(res))
 
-    if(mode=='base64-array'){
-      promise = promise.then(imgPathArrayToBase64)
+    switch(mode){
+      case 'base64-array':
+        promise = promise.then(imgPathArrayToBase64s)
+        break;
+
+      case 'buffer-array':
+        promise = promise.then(imgPathArrayToBuffers)
+        break;
     }
 
     function cleanup(input){
@@ -599,13 +601,13 @@ function imgDefToPath(item){
   return promise
 }
 
-function imgPathArrayToBase64(imgFiles){
+function imgPathArrayToBuffers(imgFiles){
   const promises = []
   imgFiles.forEach(imgPath=>{
     const promise = new Promise(function(res,rej){
       fs.readFile(imgPath,(err,data)=>{
         if(err)return rej(err)
-        res(data.toString('base64'))
+        res(data)
       })
     })
     .then(data=>{
@@ -615,6 +617,15 @@ function imgPathArrayToBase64(imgFiles){
     promises.push( promise )
   })
   return Promise.all(promises)
+}
+
+function imgPathArrayToBase64s(imgFiles){
+  return imgPathArrayToBuffers(imgFiles)
+  .then( ()=>buffers=>buffers.map(bufferToString) )
+}
+
+function bufferToString(buffer){
+  return buffer.toString('base64')
 }
 
 module.exports = PdfBoxCliWrap

@@ -5,8 +5,7 @@ This package allows for the following PDF functionality:
 
 - pages to images
 - insert images into pages
-- read forms
-- fill forms
+- read and fill Acroforms
 - certificate and passward security
 - timesstamp signing
 
@@ -166,7 +165,7 @@ const data = [{
   "value": "Acker"
 }]
 
-pdfboxCliWrap.embedFormFields(readablePdf, data, outPdfPath)
+pdfboxCliWrap.embedFormFields(readablePdf, data, outPdfPath, {flatten:true})
 .then(()=>{
   console.log("success")
 })
@@ -401,6 +400,9 @@ Takes array-of-objects and sets values of PDF Acroform fields
 - **pdfPath** - The PDF file to read form fields from
 - **fieldArray** - Array of PDF field definitions
 - **outPdfPath** - Where to write PDF that has been filled
+- **options**
+  - **flatten** - false. When true, Acroform will no longer be editable
+
 
 [examples](#fill-acroform)
 

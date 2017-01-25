@@ -32,96 +32,109 @@ function figureOutAndOptions(outputPathOrOptions, options){
   return {options:options, outputPath:outputPath}
 }
 
-class PdfBoxCliWrap{
-  static promiseJavaSpawn(sArgs){
-    return new Promise((res,rej)=>{
-      const dataArray = []
-      const spawn = require('child_process').spawn;
-      const ls = spawn('java', sArgs);
-      let spawnError = null
+const Commander = {
+  embedFormFields(pdfPath, fieldArray, outPdfPath, options){
+    const jsonFilePath = getTempFilePath('json','tempAcroformJson_')
+    const sArgs = ['-jar', ackPdfBoxJarPath, 'fill', pdfPath, jsonFilePath, outPdfPath]
+    
+    if(options && options.flatten){
+      sArgs.push('-flatten')
+      sArgs.push('true')
+    }
+    
+    fieldArray = JSON.stringify(fieldArray, null, 2)
 
-      const upgradeError = err=>{
-        if(!err)return err
-
-        if(err.message){
-          let msg = err.msg
-          msg += '\njava-exec-args:'+ JSON.stringify(sArgs)
-          err = new Error(msg)
-        }else if(err.split){
-          let msg = err
-          msg += '\njava-exec-args:'+ JSON.stringify(sArgs)
-          err = new Error(msg)
-        }
-
-        return err
-      }
-
-      ls.stdout.on('data', data=>dataArray.push(data));
-      ls.stderr.on('data', data=>dataArray.push(data));
-
-      ls.stdout.on('error', err=>spawnError=err)
-      ls.stderr.on('error', err=>spawnError=err)
-
-      ls.on('close', code=>{
-        if(spawnError){
-          return rej( upgradeError(spawnError) )
-        }
-
-        const output = dataArray.join('')//bring all cli data together
-
-        if(
-            output.substring(0, 6)=='Error:'
-        ||  output.substring(0, 9)=='Exception'
-        ||  output.substring(0, 6)=='Usage:'
-        ||  output.search('java.io')>=0
-        ){
-          return rej( upgradeError(output) )
-        }
-
-        res( output )
+    return new Promise(function(res,rej){
+      fs.writeFile(jsonFilePath, fieldArray, (err,data)=>{
+        if(err)return rej(err)
+        res({
+          processor:'embedFormFields',
+          args:sArgs,
+          jsonFilePath:jsonFilePath
+        })
       })
     })
-  }
+  },
+  addImages(pdfPathOrBuffer, imgPathArray, options){
+    options = Object.assign({}, options || {})//clone
+    const sArgs = ['-jar', ackPdfBoxJarPath, 'add-image']
+    const fromFile = pdfPathOrBuffer.constructor==String
+    let toBuffer = false
+    let deleteOut = false
+    let promise = Promise.resolve(pdfPathOrBuffer)
+    const tempPath = getTempFilePath('pdf','addImages')
+    const imagePaths = []
+    let buffDelete = null
 
-  /** Returns array of objects
-  @pdfPath - The PDF file to read form fields from
-  */
-  static getFormFields(pdfPath){
-    const sArgs = ['-jar', ackPdfBoxJarPath, 'read', pdfPath]
-    return this.promiseJavaSpawn(sArgs).then(data=>{
-      data = data.trim()
-      if(data.substring(data.length-1)==','){
-        data = data.substring(0, data.length-1)//somehow a comma is being added?
+    function cleanup(x){
+      if(deleteOut && options.out==tempPath){
+        fs.unlink(options.out,e=>e)
       }
 
-      return JSON.parse(data)
-    })
-  }
-  
-  /** Returns object of objects where key is fullyQualifiedName of PDF Acroform field
-  @pdfPath - The PDF file to read form fields from
-  */
-  static getFormFieldsAsObject(pdfPath){
-    return this.getFormFields(pdfPath).then(data=>{
-      const rtnOb = {}
-      for(let x=0; x < data.length; ++x){
-        rtnOb[ data[x].fullyQualifiedName ] = data[x]
-      }
-      return rtnOb
-    })
-  }
+      imagePaths.forEach(item=>{
+        if(item.isBase64)fs.unlink(item.path,e=>e)
+      })
 
-  /**
-    @pdfPath - The PDF file to encrypt
-    @outputPathOrOptions - The file to save the document to. If left blank then it will be the same as the input file || options
-    @options{
-      password Password to the PDF or certificate in keystore.
-      keyStore Path to keystore that holds certificate to decrypt the document. This is only required if the document is encrypted with a certificate, otherwise only the password is required.
-      tsa
+      if(buffDelete){
+        fs.unlink(buffDelete,e=>e)
+      }
+
+      return x
     }
 
-  */
-  static sign(pdfPath, outputPathOrOptions, options){
+    //discover pdf or buffer to pdf-file
+    if(fromFile){
+      sArgs.push( pdfPathOrBuffer )
+      deleteOut = options.toBuffer || !options.out
+      options.out = deleteOut ? tempPath : options.out
+    }else{
+      deleteOut = true
+      toBuffer = !options.out
+      options.out = options.out || tempPath
+      promise = promise.then( ()=>bufferToFile(pdfPathOrBuffer,'pdf','addImages'))
+      .then(buffPath=>{
+        buffDelete = buffPath
+        sArgs.push(buffPath)
+      })
+    }
+
+    if(options.toBuffer){
+      toBuffer = options.toBuffer
+      delete options.toBuffer
+    }
+
+    //add image args (possibly cast base64 to file)
+    return promise.then(()=>{
+      const promises = []
+
+      if(imgPathArray.constructor!=Array){
+        imgPathArray = [imgPathArray]
+      }
+
+      imgPathArray.forEach(item=>{
+        promises.push(
+          imgDefToPath(item)
+          .then(imgPath=>{
+            imagePaths.push({path:imgPath, isBase64:item!=imgPath})
+            sArgs.push(imgPath)
+          })
+        )
+      })
+      
+      return Promise.all(promises)
+    })
+    .then(()=>{
+      opsOntoSpawnArgs(options, sArgs)
+      return {
+        processor:'addImages', cleanup:cleanup, args:sArgs,
+        toBuffer:toBuffer, deleteOut:deleteOut, out:options.out
+      }
+    })
+  },
+  getFormFields:function(pdfPath){
+    return {processor:'getFormFields', args:['-jar', ackPdfBoxJarPath, 'read', pdfPath]}
+  },
+  sign:function(pdfPath, outputPathOrOptions, options){
     let args = figureOutAndOptions(outputPathOrOptions, options)
     const sArgs = ['-jar', ackPdfBoxJarPath, 'sign']
 
@@ -141,21 +154,170 @@ class PdfBoxCliWrap{
       sArgs.push(args.outputPath)
     }
 
-    return this.promiseJavaSpawn(sArgs)
+    return {processor:'sign', args:sArgs}
+  },
+  encrypt(pdfPath, outputPathOrOptions, options){
+    let args = figureOutAndOptions(outputPathOrOptions, options)
+    const sArgs = ['-jar', ackPdfBoxJarPath, 'Encrypt', pdfPath]
+
+    //password is actually -U and must be changed out
+    if(args.options.password){
+      args.options.U = args.options.password
+      delete args.options.password
+    }
+    opsOntoSpawnArgs(args.options, sArgs)
+
+    if(args.outputPath){
+      sArgs.push(args.outputPath)
+    }
+
+    return {processor:'encrypt', args:sArgs}
+  },
+  decrypt(pdfPath, outputPathOrOptions, options){
+    let args = figureOutAndOptions(outputPathOrOptions, options)
+    const sArgs = ['-jar', ackPdfBoxJarPath, 'Decrypt', pdfPath]
+
+    opsOntoSpawnArgs(args.options, sArgs)
+
+    if(args.outputPath){
+      sArgs.push(args.outputPath)
+    }
+
+    return {processor:'decrypt', args:sArgs}
+  },
+  pdfToImage(pdfPath, options){
+    options = options || {}
+    options.endPage = 1
+    const sArgs = ['-jar', ackPdfBoxJarPath, 'pdftoimage', pdfPath]
+    opsOntoSpawnArgs(options, sArgs)
+    return {processor:'pdfToImage', args:sArgs}
+  }
+}
+
+const Processor = {
+  sign:function(command){
+    return promiseJavaSpawn(command.args)
+  },
+  addImages:function(command){
+    return promiseJavaSpawn(command.args)
+    .then(res=>command.toBuffer ? fileToBuffer(command.out, command.deleteOut) : res)
+    .then(x=>command.cleanup(x))
+    .catch(e=>{
+      command.cleanup()
+      throw e
+    })
+  },
+  embedFormFields:function(command){
+    return promiseJavaSpawn(command.args)
+    .then(data=>{
+      fs.unlink(command.jsonFilePath,function(){})
+      return data
+    })
+    .catch(e=>{
+      fs.unlink(command.jsonFilePath,function(){})
+      throw e
+    })
+  }
+}
+
+function promiseJavaSpawn(sArgs){
+  return new Promise((res,rej)=>{
+    const dataArray = []
+    const spawn = require('child_process').spawn;
+    const ls = spawn('java', sArgs);
+    let spawnError = null
+
+    const upgradeError = err=>{
+      if(!err)return err
+
+      if(err.message){
+        let msg = err.msg
+        msg += '\njava-exec-args:'+ JSON.stringify(sArgs)
+        err = new Error(msg)
+      }else if(err.split){
+        let msg = err
+        msg += '\njava-exec-args:'+ JSON.stringify(sArgs)
+        err = new Error(msg)
+      }
+
+      return err
+    }
+
+    ls.stdout.on('data', data=>dataArray.push(data));
+    ls.stderr.on('data', data=>dataArray.push(data));
+
+    ls.stdout.on('error', err=>spawnError=err)
+    ls.stderr.on('error', err=>spawnError=err)
+
+    ls.on('close', code=>{
+      if(spawnError){
+        return rej( upgradeError(spawnError) )
+      }
+
+      const output = dataArray.join('')//bring all cli data together
+
+      if(
+          output.substring(0, 6)=='Error:'
+      ||  output.substring(0, 9)=='Exception'
+      ||  output.substring(0, 6)=='Usage:'
+      ||  output.search('java.io')>=0
+      ){
+        return rej( upgradeError(output) )
+      }
+
+      res( output )
+    })
+  })
+}
+
+class PdfBoxCliWrap{
+  static promiseJavaSpawn(sArgs){
+    return promiseJavaSpawn(sArgs)
   }
 
-  static fileToBuffer(readPath, deleteFile){
-    return new Promise(function(res,rej){
-      fs.readFile(readPath,(err,buffer)=>{
-        if(deleteFile){
-          fs.unlink(readPath,e=>e)
-        }
-        
-        if(err)return rej(err)
-        
-        res(buffer)
-      })
+  /** Returns array of objects
+  @pdfPath - The PDF file to read form fields from
+  */
+  static getFormFields(pdfPath){
+    const sArgs = Commander.getFormFields(pdfPath).args
+    return promiseJavaSpawn(sArgs)
+    .then(data=>{
+      data = data.trim()
+      if(data.substring(data.length-1)==','){
+        data = data.substring(0, data.length-1)//somehow a comma is being added?
+      }
+
+      return JSON.parse(data)
     })
+  }
+  
+  /** Returns object of objects where key is fullyQualifiedName of PDF Acroform field
+  @pdfPath - The PDF file to read form fields from
+  */
+  static getFormFieldsAsObject(pdfPath){
+    return this.getFormFields(pdfPath)
+    .then(data=>{
+      const rtnOb = {}
+      for(let x=0; x < data.length; ++x){
+        rtnOb[ data[x].fullyQualifiedName ] = data[x]
+      }
+      return rtnOb
+    })
+  }
+
+  /**
+    @pdfPath - The PDF file to encrypt
+    @outputPathOrOptions - The file to save the document to. If left blank then it will be the same as the input file || options
+    @options{
+      password Password to the PDF or certificate in keystore.
+      keyStore Path to keystore that holds certificate to decrypt the document. This is only required if the document is encrypted with a certificate, otherwise only the password is required.
+      tsa
+    }
+
+  */
+  static sign(pdfPath, outputPathOrOptions, options){
+    const command = Commander.sign(pdfPath, outputPathOrOptions, options)
+    return Processor.sign(command)
   }
 
   /** see sign method */
@@ -164,13 +326,13 @@ class PdfBoxCliWrap{
     const writePath = getTempFilePath('pdf', 'tempSign')
 
     return this.sign(pdfPath, writePath, args.options)
-    .then(msg=>this.fileToBuffer(writePath, true))
+    .then(msg=>fileToBuffer(writePath, true))
   }
 
   /** see sign method */
   static signByBuffer(buffer, options){
     let writePath = null
-    return this.bufferToFile(buffer,'pdf','signByBuffer')
+    return bufferToFile(buffer,'pdf','signByBuffer')
     .then( tempSignPath=>writePath=tempSignPath )
     .then( ()=>this.signToBuffer(writePath, options) )
     .then(data=>{
@@ -192,31 +354,8 @@ class PdfBoxCliWrap{
     }
   */
   static embedFormFields(pdfPath, fieldArray, outPdfPath, options){
-    const jsonFilePath = getTempFilePath('json','tempAcroformJson_')
-    const sArgs = ['-jar', ackPdfBoxJarPath, 'fill', pdfPath, jsonFilePath, outPdfPath]
-    
-    if(options && options.flatten){
-      sArgs.push('-flatten')
-      sArgs.push('true')
-    }
-    
-    fieldArray = JSON.stringify(fieldArray, null, 2)
-
-    return new Promise(function(res,rej){
-      fs.writeFile(jsonFilePath, fieldArray, (err,data)=>{
-        if(err)return rej(err)
-        res()
-      })
-    })
-    .then(()=>this.promiseJavaSpawn(sArgs))
-    .then(data=>{
-      fs.unlink(jsonFilePath,function(){})
-      return data
-    })
-    .catch(e=>{
-      fs.unlink(jsonFilePath,function(){})
-      throw e
-    })
+    return Commander.embedFormFields(pdfPath, fieldArray, outPdfPath, options)
+    .then(command=>Processor.embedFormFields(command))
   }
 
   /** Takes objects of objects and sets values of PDF Acroform fields
@@ -252,21 +391,8 @@ class PdfBoxCliWrap{
     }
   */
   static encrypt(pdfPath, outputPathOrOptions, options){
-    let args = figureOutAndOptions(outputPathOrOptions, options)
-    const sArgs = ['-jar', ackPdfBoxJarPath, 'Encrypt', pdfPath]
-
-    //password is actually -U and must be changed out
-    if(args.options.password){
-      args.options.U = args.options.password
-      delete args.options.password
-    }
-    opsOntoSpawnArgs(args.options, sArgs)
-
-    if(args.outputPath){
-      sArgs.push(args.outputPath)
-    }
-
-    return this.promiseJavaSpawn(sArgs)
+    const sArgs = Commander.encrypt(pdfPath, outputPathOrOptions, options).args
+    return promiseJavaSpawn(sArgs)
   }
 
   static encryptToBuffer(pdfPath, options){
@@ -274,7 +400,7 @@ class PdfBoxCliWrap{
     const encTempPath = getTempFilePath('pdf','encryptToBuffer')
 
     return this.encrypt(pdfPath, encTempPath, options)
-    .then(()=>this.fileToBuffer(encTempPath, true))
+    .then(()=>fileToBuffer(encTempPath, true))
   }
 
   /**
@@ -287,16 +413,8 @@ class PdfBoxCliWrap{
     }
   */
   static decrypt(pdfPath, outputPathOrOptions, options){
-    let args = figureOutAndOptions(outputPathOrOptions, options)
-    const sArgs = ['-jar', ackPdfBoxJarPath, 'Decrypt', pdfPath]
-
-    opsOntoSpawnArgs(args.options, sArgs)
-
-    if(args.outputPath){
-      sArgs.push(args.outputPath)
-    }
-
-    return this.promiseJavaSpawn(sArgs)
+    const sArgs = Commander.decrypt(pdfPath, outputPathOrOptions, options).args
+    return promiseJavaSpawn(sArgs)
   }
 
   static decryptToBuffer(pdfPath, options){
@@ -304,13 +422,13 @@ class PdfBoxCliWrap{
     const decTempPath = getTempFilePath('pdf','decryptToBuffer')
 
     return this.decrypt(pdfPath, decTempPath, options)
-    .then(msg=>this.fileToBuffer(decTempPath, true))
+    .then(msg=>fileToBuffer(decTempPath, true))
   }
 
   static encryptByBuffer(buffer, options){
     let encTempPath = null
     
-    return this.bufferToFile(buffer, 'pdf', 'encryptByBuffer')
+    return bufferToFile(buffer, 'pdf', 'encryptByBuffer')
     .then(path=>encTempPath=path)
     .then(()=>this.encryptToBuffer(encTempPath, options))
     .then(buffer=>{
@@ -321,22 +439,11 @@ class PdfBoxCliWrap{
       fs.unlink(encTempPath,e=>e)
       throw e
     })
-
-  }
-
-  static bufferToFile(buffer, ext, prefix){
-    const buffTempPath = getTempFilePath((ext||'pdf'), (prefix||'bufferToFile'))
-    return new Promise(function(res,rej){
-      fs.writeFile(buffTempPath,buffer,(err,data)=>{
-        if(err)return rej(err)
-        res(buffTempPath)
-      })
-    })
   }
 
   static decryptByBuffer(buffer, options){
     let wPath = null
-    return this.bufferToFile(buffer, 'pdf', 'decryptByBuffer')
+    return bufferToFile(buffer, 'pdf', 'decryptByBuffer')
     .then(writePath=>wPath=writePath)
     .then(()=>this.decryptToBuffer(wPath, options))
     .then(buffer=>{
@@ -361,13 +468,8 @@ class PdfBoxCliWrap{
     }
   */
   static pdfToImage(pdfPath, options){
-    options = options || {}
-    options.endPage = 1
-    const sArgs = ['-jar', ackPdfBoxJarPath, 'pdftoimage', pdfPath]
-
-    opsOntoSpawnArgs(options, sArgs)
-
-    return this.promiseJavaSpawn(sArgs).then(paths=>paths[0])
+    const sArgs = Commander.pdfToImage(pdfPath, options).args
+    return promiseJavaSpawn(sArgs).then(paths=>paths[0])
   }
 
   /** produces png/jpg images in same folder as pdf
@@ -394,7 +496,7 @@ class PdfBoxCliWrap{
       fileprefix = pdfPathOrBuffer.split(path.sep).pop()
       sArgs.push( pdfPathOrBuffer )
     }else{
-      promise = promise.then( buffer=>this.bufferToFile(buffer,'pdf','pdfToImages'))
+      promise = promise.then( buffer=>bufferToFile(buffer,'pdf','pdfToImages'))
       .then(buffPath=>{
         buffDelete = buffPath
         fileprefix = buffPath.split(path.sep).pop()
@@ -403,15 +505,15 @@ class PdfBoxCliWrap{
     }
 
 
-    let mode = options.mode ? options.mode : 'files'
     options = options || {}
+    let mode = options.mode ? options.mode : 'files'
     const imgSuffix = options.imageType||'jpg'
 
     delete options.mode
 
     promise = promise.then(()=>{
       opsOntoSpawnArgs(options, sArgs)
-      return this.promiseJavaSpawn(sArgs)
+      return promiseJavaSpawn(sArgs)
     })
     .then(res=>JSON.parse(res))
 
@@ -451,96 +553,12 @@ class PdfBoxCliWrap{
       width  : default is image width. Accepts percent width
       height : default is image height  
     }
-  */
+  */  
   static addImages(pdfPathOrBuffer, imgPathArray, options){
-    options = Object.assign({}, options || {})//clone
-    const sArgs = ['-jar', ackPdfBoxJarPath, 'add-image']
-
-    const fromFile = pdfPathOrBuffer.constructor==String
-    let toBuffer = false
-    let deleteOut = false
-    let promise = Promise.resolve(pdfPathOrBuffer)
-    const tempPath = getTempFilePath('pdf','addImages')
-    const imagePaths = []
-    let buffDelete = null
-
-    //discover pdf or buffer to pdf-file
-    if(fromFile){
-      sArgs.push( pdfPathOrBuffer )
-      deleteOut = options.toBuffer || !options.out
-      options.out = deleteOut ? tempPath : options.out
-    }else{
-      deleteOut = true
-      toBuffer = !options.out
-      options.out = options.out || tempPath
-      promise = promise.then( ()=>this.bufferToFile(pdfPathOrBuffer,'pdf','addImages'))
-      .then(buffPath=>{
-        buffDelete = buffPath
-        sArgs.push(buffPath)
-      })
-    }
-
-    if(options.toBuffer){
-      toBuffer = options.toBuffer
-      delete options.toBuffer
-    }
-
-    //add image args (possibly cast base64 to file)
-    promise = promise.then(()=>{
-      const promises = []
-
-      if(imgPathArray.constructor!=Array){
-        imgPathArray = [imgPathArray]
-      }
-
-      imgPathArray.forEach(item=>{
-        promises.push(
-          imgDefToPath(item)
-          .then(imgPath=>{
-            imagePaths.push({path:imgPath, isBase64:item!=imgPath})
-            sArgs.push(imgPath)
-          })
-        )
-      })
-      
-      return Promise.all(promises)
-    })
-
-    promise = promise.then(()=>{
-      opsOntoSpawnArgs(options, sArgs)
-      return this.promiseJavaSpawn(sArgs)
-    })
-
-    if(toBuffer){
-      promise = promise.then(()=>this.fileToBuffer(options.out, deleteOut))
-    }
-
-    function cleanup(x){
-      //const promises = []
-
-      if(deleteOut && options.out==tempPath){
-        fs.unlink(options.out,e=>e)
-        //promises.push( this.promiseDelete(options.out) )
-      }
-
-      imagePaths.forEach(item=>{
-        if(item.isBase64)fs.unlink(item.path,e=>e)
-      })
-
-      if(buffDelete){
-        fs.unlink(buffDelete,e=>e)
-      }
-
-      return x
-      //return Promise.all(promises).then(()=>x)
-    }
-
-    return promise
-    .then(cleanup)
-    .catch(e=>{
-      cleanup()
-      throw e
-    })
+    let promise = Commander.addImages(pdfPathOrBuffer, imgPathArray, options)
+    let command = {cleanup:()=>0}//foo
+    
+    return promise.then(command=>Processor.addImages(command))
   }
 
   static promiseDelete(path, ignoreFileNotFound){
@@ -595,7 +613,7 @@ function imgDefToPath(item){
   let promise = Promise.resolve(item)
   
   if(isBase64){
-    promise = promise.then(()=>base64ToFile(item))
+    promise = promise.then(item=>base64ToFile(item))
   }
 
   return promise
@@ -626,6 +644,30 @@ function imgPathArrayToBase64s(imgFiles){
 
 function bufferToString(buffer){
   return buffer.toString('base64')
+}
+
+function bufferToFile(buffer, ext, prefix){
+  const buffTempPath = getTempFilePath((ext||'pdf'), (prefix||'bufferToFile'))
+  return new Promise(function(res,rej){
+    fs.writeFile(buffTempPath,buffer,(err,data)=>{
+      if(err)return rej(err)
+      res(buffTempPath)
+    })
+  })
+}
+
+function fileToBuffer(readPath, deleteFile){
+  return new Promise(function(res,rej){
+    fs.readFile(readPath,(err,buffer)=>{
+      if(deleteFile){
+        fs.unlink(readPath,e=>e)
+      }
+      
+      if(err)return rej(err)
+      
+      res(buffer)
+    })
+  })
 }
 
 module.exports = PdfBoxCliWrap

@@ -39,6 +39,7 @@ This package allows for the following PDF functionality:
   - [pdfToImage](#pdftoimage)
   - [addImages](#addimages)
 - [Resources](#resources)
+- [Credits](#credits)
 
 ## Purpose
 Connect to Java and the PDFBox library to allow Node code to perform perfected PDF management techinques.
@@ -50,7 +51,7 @@ If you've looked into documentation for secure storage of PDFs, you know you nee
 ### PDF to One Image
 Create one image for the first page of a PDF document. Use pdfToImages to makes images of other pages
 
-```
+```javascript
 const pdfboxCliWrap = require('pdfbox-cli-wrap')
 const readablePdf = path.join(__dirname,'readable.pdf')
 
@@ -62,7 +63,7 @@ pdfboxCliWrap.pdfToImage(readablePdf)
 ```
 
 ### PDF To Images
-```
+```javascript
 const pdfboxCliWrap = require('pdfbox-cli-wrap')
 const readablePdf = path.join(__dirname,'readable.pdf')
 
@@ -77,7 +78,7 @@ pdfboxCliWrap.pdfToImages(readablePdf)
 Insert one image at one specific location, or append multiple images, and more...
 
 Example Insert Image File into Page
-```
+```javascript
 const pdfboxCliWrap = require('pdfbox-cli-wrap')
 const readablePdf = path.join(__dirname,'readable.pdf')
 const options = {x:200, y:200, page:0, width:100, height:100}
@@ -90,7 +91,7 @@ pdfboxCliWrap.addImages(readablePdf, imgPath0, options)
 ```
 
 Example Insert Image Base64 into Page
-```
+```javascript
 const pdfboxCliWrap = require('pdfbox-cli-wrap')
 const readablePdf = path.join(__dirname,'readable.pdf')
 const options = {x:200, y:200, page:0, width:100, height:100}
@@ -103,7 +104,7 @@ pdfboxCliWrap.addImages(readablePdf, 'data:image/png;base64,...', options)
 ```
 
 Example Append Images as Pages
-```
+```javascript
 const pdfboxCliWrap = require('pdfbox-cli-wrap')
 const readablePdf = path.join(__dirname,'readable.pdf')
 const options = {
@@ -122,7 +123,7 @@ pdfboxCliWrap.addImages(readablePdf,[imgPath0, imgPath1], options)
 ### Read Acroform
 Read PDf form fields as an array of objects
 
-```
+```javascript
 const pdfboxCliWrap = require('pdfbox-cli-wrap')
 const readablePdf = path.join(__dirname,'readable.pdf')
 
@@ -134,7 +135,7 @@ pdfboxCliWrap.getFormFields(readablePdf)
 ```
 
 The result of getFormFields will look like the following JSON
-```
+```javascript
 [{
   "fullyQualifiedName": "form1[0].#subform[6].FamilyName[0]",
   "isReadOnly": false,
@@ -154,7 +155,7 @@ The result of getFormFields will look like the following JSON
 
 ### Fill Acroform
 Fill PDf form fields from an array of objects
-```
+```javascript
 const pdfboxCliWrap = require('pdfbox-cli-wrap')
 const readablePdf = path.join(__dirname,'readable.pdf')
 const outPdfPath = path.join(__dirname,'filled.pdf')
@@ -183,7 +184,7 @@ The JSON file below will fill two fields:
         - **uri** specifies jpg or png image data
         - **forceWidthHeight** forces image to fit with-in field coordinates
 
-```
+```javascript
 const pdfboxCliWrap = require('pdfbox-cli-wrap')
 const readablePdf = path.join(__dirname,'readable.pdf')
 const outPdfPath = path.join(__dirname,'filled.pdf')
@@ -232,7 +233,7 @@ pdfboxCliWrap.embedFormFields(readablePdf, data, outPdfPath)
 
 
 ### Embed Timestamp Signature
-```
+```javascript
 const pdfboxCliWrap = require('pdfbox-cli-wrap')
 
 //create paths to pdf files
@@ -249,7 +250,7 @@ pdfboxCliWrap.signToBuffer(inPath)
 ### Encrypt Decrypt by Password
 A great place to start before moving on to certificate based cryptography
 
-```
+```javascript
 const pdfboxCliWrap = require('pdfbox-cli-wrap')
 
 //create paths to pdf files
@@ -271,7 +272,7 @@ promise.then( ()=>pdfboxCliWrap.decrypt(toPath, , {'password':'123abc'}) )
 ### Encrypt Decrypt by Certificate
 This is where the money is
 
-```
+```javascript
 const pdfboxCliWrap = require('pdfbox-cli-wrap')
 
 //create paths to pdf files
@@ -309,7 +310,7 @@ This package is a wrapper for making CLI commands to Java. A few things are goin
 
 ### Install Java
 [Download and Install Java](https://www.java.com/en/download/) and be sure the following command works without error in a command terminal:
-```
+```bash
 java -version
 ```
 
@@ -333,19 +334,19 @@ Get ready to run terminal commands against Java's keytool. Fun fun
 > In a terminal command prompt window, run the following in a folder where certificate files can live
 
 Step #1 Create keyStore
-```
+```bash
 keytool -genkey -keyalg RSA -alias pdfbox-test-alias -keystore pdfbox-test-keystore.jks -storepass pdfbox-test-password -validity 360 -keysize 2048
 ```
 > creates file pdfbox-test-keystore.jks
 
 Step #2 Create a selfsigned certificate
-```
+```bash
 keytool -export -alias pdfbox-test-alias -file pdfbox-test.crt -keystore pdfbox-test-keystore.jks
 ```
 > creates file pdfbox-test.crt
 
 Step #3 Marry the certificate and keyStore together as a .p12 file
-```
+```bash
 keytool -importkeystore -srckeystore pdfbox-test-keystore.jks -destkeystore pdfbox-test.p12 -srcstoretype JKS -deststoretype PKCS12 -deststorepass pdfbox-test-password -srcalias pdfbox-test-alias -destalias pdfbox-test-p12
 ```
 > creates file pdfbox-test.p12
@@ -368,13 +369,13 @@ Depending on your level of advanced encryption needs, you (may) need to install 
 In the root folder of pdfbox-cli-wrap, in a terminal command window, you can test your installation
 
 Step 1, Install the Test Dependencies (Mocha)
-```
+```bash
 npm install
 ```
 > The pdfbox-cli-wrap folder should now have a folder named "node_modules" with a folder named "mocha"
 
 Step 2, Run the Test
-```
+```bash
 npm test
 ```
 
@@ -430,13 +431,13 @@ Will embed timestamp signature with optional TSA option
 
 ### signToBuffer
 See [sign](#sign)
-```
+```javascript
 pdfboxCliWrap.signToBuffer(path,outPath,options).then(buffer).catch()
 ```
 
 ### signByBuffer
 See [sign](#sign)
-```
+```javascript
 pdfboxCliWrap.signByBuffer(buffer,options).then(buffer).catch()
 ```
 
@@ -515,3 +516,8 @@ Insert a single image into a PDF or append multi images as individual pages
 - I had to report and have PDFBox fix a CLI issue to get this package to even work. A version of PDFBox with this fix has been included
     - [Link to fixed issued](https://issues.apache.org/jira/browse/PDFBOX-3551)
 - PDF form read and fill is performed by the Java library [ack-pdfbox](https://github.com/AckerApple/ack-pdfbox)
+
+
+## Credits
+
+- Production Support : [caringpeopleinc.com](http://caringpeopleinc.com/)

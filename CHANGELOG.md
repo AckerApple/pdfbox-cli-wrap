@@ -1,6 +1,10 @@
 # pdfbox-cli-wrap - Change Log
 All notable changes to this project will be documented here.
 
+## [1.0.32] - 2017-03-22
+### Enhanced
+- Colorized docs
+
 ## [1.0.31] - 2017-01-17
 - option.mode of buffer-array to pdfToImages
 

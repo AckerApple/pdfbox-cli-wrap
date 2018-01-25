@@ -300,6 +300,14 @@ class PdfBoxCliWrap{
         data = data.substring(0, data.length-1)//somehow a comma is being added?
       }
 
+//remote testing to be removed
+try{
+      const result = JSON.parse(data)
+}catch(e){
+  console.log('e', data)
+  throw e
+}
+
       return JSON.parse(data)
     })
   }
@@ -527,7 +535,8 @@ class PdfBoxCliWrap{
       opsOntoSpawnArgs(options, sArgs)
       return promiseJavaSpawn(sArgs)
     })
-    .then(res=>JSON.parse( trimJavaResponseToJson(res) ))
+    .then(res=>JSON.parse( res ))
+    //.then(res=>JSON.parse( trimJavaResponseToJson(res) ))
 
     switch(mode){
       case 'base64-array':
@@ -686,8 +695,9 @@ function fileToBuffer(readPath, deleteFile){
   TODO: we need to turn off verbose logging
   CAUSE: Sometimes we are getting Java extra message of "Picked up _JAVA_OPTIONS: -Xmx2048m -Xms512m"
 */
-function trimJavaResponseToJson(string){
-  return string.replace(/^[^\[\{]*/,'')
-}
+//function trimJavaResponseToJson(string){
+//  return string.replace(/^[^\[\{]*/,'')
+//}
+
 
 module.exports = PdfBoxCliWrap

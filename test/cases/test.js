@@ -16,6 +16,7 @@ const base64img = require('./base64img.json')
 const isTravis = process.env.TRAVIS
 const isRemoteTest = process.env.APPVEYOR || isTravis
 const myIt = isTravis ? it.skip : it
+const myBouncyIt = isTravis ? it.skip : myIt
 
 if( isRemoteTest ){
   console.log('\x1b[34mRemote testing server detected. Some test will be skipped\x1b[0m')
@@ -236,7 +237,7 @@ describe('pdfboxCliWrap',function(){
         .then(done).catch(done)
       })
 
-      myIt('#encrypt{certFile}',done=>{
+      myBouncyIt('#encrypt{certFile}',done=>{
         pdfboxCliWrap.encrypt(dec, enc, {'certFile':cert})
         .then( ()=>pdfboxCliWrap.decrypt(enc) )
         .catch(e=>bouncyCastleTest(e))
@@ -250,7 +251,7 @@ describe('pdfboxCliWrap',function(){
         .then(done).catch(done)
       })
 
-      myIt('#decrypt{certFile}',done=>{
+      myBouncyIt('#decrypt{certFile}',done=>{
         pdfboxCliWrap.encrypt(dec, enc, {'certFile':cert})
         .then(()=>pdfboxCliWrap.decrypt(enc, dec2, {keyStore:key, password:'pdfbox-test-password'}))
         .then( ()=>pdfboxCliWrap.decrypt(dec2) )

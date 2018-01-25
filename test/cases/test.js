@@ -191,6 +191,7 @@ describe('pdfboxCliWrap',function(){
         .then( buffer=>pdfboxCliWrap.encryptByBuffer(buffer, config) )
         .then( buffer=>pdfboxCliWrap.decryptByBuffer(buffer, config) )
         .then( buffer=>pdfboxCliWrap.decryptByBuffer(buffer) )//already decrypted, will cause error
+        .catch(e=>bouncyCastleTest(e))
         .catch(err=>{
           if(err && err.message){
             assert.equal(err.message.search(/Document is not encrypted/i)>=0, true)
@@ -248,7 +249,7 @@ describe('pdfboxCliWrap',function(){
         .then(done).catch(done)
       })
 
-      myit('#decrypt{certFile}',done=>{
+      myIt('#decrypt{certFile}',done=>{
         pdfboxCliWrap.encrypt(dec, enc, {'certFile':cert})
         .then(()=>pdfboxCliWrap.decrypt(enc, dec2, {keyStore:key, password:'pdfbox-test-password'}))
         .then( ()=>pdfboxCliWrap.decrypt(dec2) )

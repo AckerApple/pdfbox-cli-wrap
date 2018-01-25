@@ -1,6 +1,13 @@
 # pdfbox-cli-wrap - Change Log
 All notable changes to this project will be documented here.
 
+## [1.0.33] - 2018-01-25
+### Added
+- Appveyor and Travis testing
+### Enhanced
+- Testing
+
+
 ## [1.0.32] - 2017-03-22
 ### Enhanced
 - Colorized docs

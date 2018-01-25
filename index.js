@@ -232,6 +232,11 @@ function promiseJavaSpawn(sArgs){
   return new Promise((res,rej)=>{
     const dataArray = []
     const spawn = require('child_process').spawn;
+
+    //Hackish and may need eventual change. Real issue is Java outputting extra logging    
+    sArgs.unshift('-Xmx2048m')//set memory to prevent Java verbose log of "Picked up _JAVA_OPTIONS: -Xmx2048m -Xms512m"
+    sArgs.unshift('-Xms512m')//set memory to prevent Java verbose log of "Picked up _JAVA_OPTIONS: -Xmx2048m -Xms512m"
+    
     const ls = spawn('java', sArgs);
     let spawnError = null
 
@@ -512,7 +517,6 @@ class PdfBoxCliWrap{
       })
     }
 
-
     options = options || {}
     let mode = options.mode ? options.mode : 'files'
     const imgSuffix = options.imageType||'jpg'
@@ -523,14 +527,7 @@ class PdfBoxCliWrap{
       opsOntoSpawnArgs(options, sArgs)
       return promiseJavaSpawn(sArgs)
     })
-    .then(res=>{
-      try{
-        JSON.parse(res)
-      }catch(e){
-        console.log('jjjjjj------------', res, e)
-        throw e
-      }
-    })
+    .then(res=>JSON.parse( trimJavaResponseToJson(res) ))
 
     switch(mode){
       case 'base64-array':
@@ -683,6 +680,14 @@ function fileToBuffer(readPath, deleteFile){
       res(buffer)
     })
   })
+}
+
+/** hack to remove JAVA verbose logging.
+  TODO: we need to turn off verbose logging
+  CAUSE: Sometimes we are getting Java extra message of "Picked up _JAVA_OPTIONS: -Xmx2048m -Xms512m"
+*/
+function trimJavaResponseToJson(string){
+  return string.replace(/^[^\[\{]*/,'')
 }
 
 module.exports = PdfBoxCliWrap

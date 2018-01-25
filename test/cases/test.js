@@ -13,8 +13,9 @@ const cert = path.join(assetPath,'pdfbox-test.crt')
 const key = path.join(assetPath,'pdfbox-test.p12')
 const base64img = require('./base64img.json')
 
-const isRemoteTest = process.env.APPVEYOR || process.env.TRAVIS
-const myIt = isRemoteTest ? it.skip : it
+const isTravis = process.env.TRAVIS
+const isRemoteTest = process.env.APPVEYOR || isTravis
+const myIt = isTravis ? it.skip : it
 
 if( isRemoteTest ){
   console.log('\x1b[34mRemote testing server detected. Some test will be skipped\x1b[0m')
@@ -57,11 +58,11 @@ describe('pdfboxCliWrap',function(){
     describe('#pdfToImages',()=>{
       it('mode:files',done=>{
         pdfboxCliWrap.pdfToImages(dec)
-        .then(x=>{
-          assert.equal(x.length, 1)
-          return x[0]
+        .then(filePaths=>{
+          assert.equal(filePaths.length, 1)
+          return filePaths[0]
         })
-        .then(x=>deleteFiles?pdfboxCliWrap.promiseDelete(x):null)
+        .then(filePath=>deleteFiles?pdfboxCliWrap.promiseDelete(filePath):null)
         .then(done).catch(done)
       })
 
@@ -184,7 +185,7 @@ describe('pdfboxCliWrap',function(){
         .then(done).catch(done)
       })
 
-      it('#encryptToBuffer{password}',done=>{
+      myIt('#encryptToBuffer{password}',done=>{
         const config = {'password':'123abc'}
         pdfboxCliWrap.encryptToBuffer(dec, config)
         .then( buffer=>pdfboxCliWrap.decryptByBuffer(buffer, config) )

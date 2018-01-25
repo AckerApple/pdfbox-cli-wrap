@@ -13,10 +13,9 @@ const cert = path.join(assetPath,'pdfbox-test.crt')
 const key = path.join(assetPath,'pdfbox-test.p12')
 const base64img = require('./base64img.json')
 
-const isTravis = process.env.TRAVIS
-const isRemoteTest = process.env.APPVEYOR || isTravis
-const myIt = isTravis ? it.skip : it
-const myBouncyIt = isTravis ? it.skip : myIt
+const isRemoteTest = process.env.APPVEYOR || process.env.TRAVIS
+const myIt = process.env.TRAVIS ? it.skip : it
+const myBouncyIt = process.env.APPVEYOR ? it.skip : myIt
 
 if( isRemoteTest ){
   console.log('\x1b[34mRemote testing server detected. Some test will be skipped\x1b[0m')

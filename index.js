@@ -301,14 +301,6 @@ class PdfBoxCliWrap{
         data = data.substring(0, data.length-1)//somehow a comma is being added?
       }
 
-//remote testing to be removed
-try{
-      const result = JSON.parse(data)
-}catch(e){
-  console.log('e', data)
-  throw e
-}
-
       return JSON.parse(data)
     })
   }
@@ -415,6 +407,7 @@ try{
   static encrypt(pdfPath, outputPathOrOptions, options){
     const sArgs = Commander.encrypt(pdfPath, outputPathOrOptions, options).args
     return promiseJavaSpawn(sArgs)
+    .then( res=>trimJavaResponseToJson(res) )
   }
 
   static encryptToBuffer(pdfPath, options){
@@ -437,6 +430,7 @@ try{
   static decrypt(pdfPath, outputPathOrOptions, options){
     const sArgs = Commander.decrypt(pdfPath, outputPathOrOptions, options).args
     return promiseJavaSpawn(sArgs)
+    .then( res=>trimJavaResponseToJson(res) )
   }
 
   static decryptToBuffer(pdfPath, options){

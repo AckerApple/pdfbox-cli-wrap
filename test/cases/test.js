@@ -14,6 +14,7 @@ const key = path.join(assetPath,'pdfbox-test.p12')
 const base64img = require('./base64img.json')
 
 const isRemoteTest = process.env.APPVEYOR || process.env.TRAVIS
+const myIt = isRemoteTest ? it.skip : it
 
 if( isRemoteTest ){
   console.log('\x1b[34mRemote testing server detected. Some test will be skipped\x1b[0m')
@@ -202,7 +203,7 @@ describe('pdfboxCliWrap',function(){
         .then(done).catch(done)
       })
 
-      it('#encrypt{password}',done=>{
+      myIt('#encrypt{password}',done=>{
         pdfboxCliWrap.encrypt(dec, enc, {'password':'123abc'})
         .then( ()=>pdfboxCliWrap.decrypt(enc) )
         .catch(e=>{
@@ -215,7 +216,7 @@ describe('pdfboxCliWrap',function(){
         .then(done).catch(done)
       })
 
-      it('#decrypt{password}',done=>{
+      myIt('#decrypt{password}',done=>{
         const config = {'password':'123abc'}
         pdfboxCliWrap.encrypt(dec, enc, config)
         .then(()=>pdfboxCliWrap.decrypt(enc, config))
@@ -233,14 +234,11 @@ describe('pdfboxCliWrap',function(){
         .then(done).catch(done)
       })
 
-      it('#encrypt{certFile}',done=>{
+      myIt('#encrypt{certFile}',done=>{
         pdfboxCliWrap.encrypt(dec, enc, {'certFile':cert})
         .then( ()=>pdfboxCliWrap.decrypt(enc) )
+        .catch(e=>bouncyCastleTest(e))
         .catch(e=>{
-          if( e.message.search(/Could not find a suitable javax.crypto provider/i)>=0 ){
-            console.warning("")
-            return
-          }
 
           if( !e || !e.message || e.message.search(/Provided decryption material is not compatible with the document/i)<0 ){
             throw e
@@ -273,10 +271,9 @@ describe('pdfboxCliWrap',function(){
 function bouncyCastleTest(err){
   if(err.message && err.message.search('Could not find a suitable javax.crypto')>=0){
     console.error('\x1b[33m---NOTE: Bouncy castle is not installed, skipping test\x1b[0m')
-    return
   }
 
-  throw e
+  throw err
 }
 
 function fakeSigningTest(err){

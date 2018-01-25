@@ -524,6 +524,10 @@ class PdfBoxCliWrap{
       return promiseJavaSpawn(sArgs)
     })
     .then(res=>JSON.parse(res))
+    .catch(e=>{
+      console.log('jjjjjj------------', e)
+      throw e
+    })
 
     switch(mode){
       case 'base64-array':

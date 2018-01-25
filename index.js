@@ -523,10 +523,13 @@ class PdfBoxCliWrap{
       opsOntoSpawnArgs(options, sArgs)
       return promiseJavaSpawn(sArgs)
     })
-    .then(res=>JSON.parse(res))
-    .catch(e=>{
-      console.log('jjjjjj------------', e)
-      throw e
+    .then(res=>{
+      try{
+        JSON.parse(res)
+      }catch(e){
+        console.log('jjjjjj------------', res, e)
+        throw e
+      }
     })
 
     switch(mode){

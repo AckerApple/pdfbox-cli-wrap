@@ -248,7 +248,7 @@ describe('pdfboxCliWrap',function(){
         .then(done).catch(done)
       })
 
-      it('#decrypt{certFile}',done=>{
+      myit('#decrypt{certFile}',done=>{
         pdfboxCliWrap.encrypt(dec, enc, {'certFile':cert})
         .then(()=>pdfboxCliWrap.decrypt(enc, dec2, {keyStore:key, password:'pdfbox-test-password'}))
         .then( ()=>pdfboxCliWrap.decrypt(dec2) )

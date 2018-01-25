@@ -1,6 +1,11 @@
 # pdfbox-cli-wrap
 A wrapper for making PDFBox CLI commands
 
+[![build status](https://travis-ci.org/AckerApple/pdfbox-cli-wrap.svg)](http://travis-ci.org/AckerApple/pdfbox-cli-wrap)
+[![Build status](https://ci.appveyor.com/api/projects/status/r2dj2j87wspg1unk?svg=true)](https://ci.appveyor.com/project/AckerApple/pdfbox-cli-wrap)
+[![NPM version](https://img.shields.io/npm/v/pdfbox-cli-wrap.svg?style=flat-square)](https://www.npmjs.com/package/pdfbox-cli-wrap)
+[![dependencies](https://david-dm.org/ackerapple/pdfbox-cli-wrap/status.svg)](https://david-dm.org/ackerapple/pdfbox-cli-wrap)
+
 This package allows for the following PDF functionality:
 
 - pages to images

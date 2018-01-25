@@ -234,8 +234,8 @@ function promiseJavaSpawn(sArgs){
     const spawn = require('child_process').spawn;
 
     //Hackish and may need eventual change. Real issue is Java outputting extra logging    
-    sArgs.unshift('-Xmx2048m')//set memory to prevent Java verbose log of "Picked up _JAVA_OPTIONS: -Xmx2048m -Xms512m"
-    sArgs.unshift('-Xms512m')//set memory to prevent Java verbose log of "Picked up _JAVA_OPTIONS: -Xmx2048m -Xms512m"
+    //sArgs.unshift('-Xmx2048m')//set memory to prevent Java verbose log of "Picked up _JAVA_OPTIONS: -Xmx2048m -Xms512m"
+    //sArgs.unshift('-Xms512m')//set memory to prevent Java verbose log of "Picked up _JAVA_OPTIONS: -Xmx2048m -Xms512m"
     
     const ls = spawn('java', sArgs);
     let spawnError = null
@@ -294,6 +294,7 @@ class PdfBoxCliWrap{
   static getFormFields(pdfPath){
     const sArgs = Commander.getFormFields(pdfPath).args
     return promiseJavaSpawn(sArgs)
+    .then( res=>trimJavaResponseToJson(res) )
     .then(data=>{
       data = data.trim()
       if(data.substring(data.length-1)==','){
@@ -535,8 +536,8 @@ try{
       opsOntoSpawnArgs(options, sArgs)
       return promiseJavaSpawn(sArgs)
     })
-    .then(res=>JSON.parse( res ))
-    //.then(res=>JSON.parse( trimJavaResponseToJson(res) ))
+    .then( res=>trimJavaResponseToJson(res) )
+    .then( res=>JSON.parse( res ) )
 
     switch(mode){
       case 'base64-array':
@@ -695,9 +696,13 @@ function fileToBuffer(readPath, deleteFile){
   TODO: we need to turn off verbose logging
   CAUSE: Sometimes we are getting Java extra message of "Picked up _JAVA_OPTIONS: -Xmx2048m -Xms512m"
 */
-//function trimJavaResponseToJson(string){
-//  return string.replace(/^[^\[\{]*/,'')
-//}
+function trimJavaResponseToJson(string){
+  if( string.search('Picked up _JAVA_OPTIONS')>=0 ){
+    return string.replace(/^[^\[\{]*/,'')
+  }
+
+  return string
+}
 
 
 module.exports = PdfBoxCliWrap

@@ -197,6 +197,14 @@ const Commander = {
 const Processor = {
   sign:function(command){
     return promiseJavaSpawn(command.args)
+    .then(test=>{
+      if(test && test.search && test.search('java.security.cert.CertificateExpiredException')){
+        const err = new Error(test)
+        err.details = "signing certificate is invalid"
+        err.code = 498
+        throw err
+      }
+    })
   },
   addImages:function(command){
     return promiseJavaSpawn(command.args)

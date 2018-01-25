@@ -3,7 +3,5 @@ node_js:
   - 8
   - 7
   - 6
-  - 4
   - 5
-  - 0.12
 sudo: false

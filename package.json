@@ -1,11 +1,13 @@
 {
   "name": "pdfbox-cli-wrap",
-  "version": "1.0.33",
+  "version": "1.0.4",
   "description": "A wrapper for making PDFBox CLI commands",
   "main": "index.js",
+  "typings": "js/index.d.ts",
   "scripts": {
     "test": "mocha ./test/cases --recursive",
-    "test:watch": "mocha ./test/cases --recursive --watch"
+    "test:watch": "mocha ./test/cases --recursive --watch",
+    "build:js": "tsc ts/* --outDir js --declaration true --lib ES6"
   },
   "repository": {
     "type": "git",
@@ -26,9 +28,11 @@
   },
   "homepage": "https://github.com/AckerApple/pdfbox-cli-wrap#readme",
   "devDependencies": {
-    "mocha": "^3.1.2"
+    "mocha": "^3.1.2",
+    "typescript": "^2.5.3"
   },
   "dependencies": {
+    "@types/node": "^9.3.0",
     "ack-pdfbox": "^1.2.0"
   }
 }

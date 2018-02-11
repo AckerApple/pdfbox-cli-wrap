@@ -1,6 +1,8 @@
 # pdfbox-cli-wrap
 A wrapper for making PDFBox CLI commands
 
+[![hire me](https://ackerapple.github.io/resume/assets/images/hire-me-badge.svg)](https://ackerapple.github.io/resume/)
+[![npm downloads](https://img.shields.io/npm/dm/pdfbox-cli-wrap.svg)](https://npmjs.org/pdfbox-cli-wrap)
 [![build status](https://travis-ci.org/AckerApple/pdfbox-cli-wrap.svg)](http://travis-ci.org/AckerApple/pdfbox-cli-wrap)
 [![Build status](https://ci.appveyor.com/api/projects/status/r2dj2j87wspg1unk?svg=true)](https://ci.appveyor.com/project/AckerApple/pdfbox-cli-wrap)
 [![NPM version](https://img.shields.io/npm/v/pdfbox-cli-wrap.svg?style=flat-square)](https://www.npmjs.com/package/pdfbox-cli-wrap)

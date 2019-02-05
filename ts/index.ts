@@ -637,7 +637,9 @@ function imgDefToPath(item){
   return promise
 }
 
-function imgPathArrayToBuffers(imgFiles){
+function imgPathArrayToBuffers(
+  imgFiles
+):Promise<any[]>{
   const promises = []
   imgFiles.forEach(imgPath=>{
     const promise = new Promise(function(res,rej){
@@ -657,7 +659,7 @@ function imgPathArrayToBuffers(imgFiles){
 
 function imgPathArrayToBase64s(imgFiles){
   return imgPathArrayToBuffers(imgFiles)
-  .then( ()=>buffers=>buffers.map(bufferToString) )
+  .then( buffers=>buffers.map(bufferToString) )
 }
 
 function bufferToString(buffer){

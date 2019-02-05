@@ -1,11 +1,14 @@
 "use strict";
-var __assign = (this && this.__assign) || Object.assign || function(t) {
-    for (var s, i = 1, n = arguments.length; i < n; i++) {
-        s = arguments[i];
-        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-            t[p] = s[p];
-    }
-    return t;
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
 };
 exports.__esModule = true;
 //const Document = require('node-pdfbox');
@@ -27,8 +30,8 @@ function opsOntoSpawnArgs(options, sArgs) {
 }
 function figureOutAndOptions(outputPathOrOptions, options) {
     var outputPath = '';
-    if (outputPathOrOptions) {
-        if (outputPathOrOptions.split) {
+    if (outputPathOrOptions) { //2nd arg defined?
+        if (outputPathOrOptions.split) { //is string for output path?
             outputPath = outputPathOrOptions;
         }
         else {
@@ -249,7 +252,7 @@ function promiseJavaSpawn(sArgs) {
         });
     });
 }
-var PdfBoxCliWrap = (function () {
+var PdfBoxCliWrap = /** @class */ (function () {
     function PdfBoxCliWrap() {
     }
     PdfBoxCliWrap.promiseJavaSpawn = function (sArgs) {
@@ -526,9 +529,9 @@ var PdfBoxCliWrap = (function () {
             });
         });
     };
+    PdfBoxCliWrap.jarPath = ackPdfBoxJarPath; //helpful ref to where Jar file lives
     return PdfBoxCliWrap;
 }());
-PdfBoxCliWrap.jarPath = ackPdfBoxJarPath; //helpful ref to where Jar file lives
 exports.PdfBoxCliWrap = PdfBoxCliWrap;
 var tempCounter = 0;
 function getTempFileName(ext, prefix) {
@@ -582,7 +585,7 @@ function imgPathArrayToBuffers(imgFiles) {
 }
 function imgPathArrayToBase64s(imgFiles) {
     return imgPathArrayToBuffers(imgFiles)
-        .then(function () { return function (buffers) { return buffers.map(bufferToString); }; });
+        .then(function (buffers) { return buffers.map(bufferToString); });
 }
 function bufferToString(buffer) {
     return buffer.toString('base64');
